@@ -4,7 +4,11 @@ const jwt = require('jsonwebtoken');
 class CryptoService {
   constructor() {
     this.saltRounds = 12;
-    this.jwtSecret = process.env.JWT_SECRET || 'dentalconnect-secret-key-2024';
+    this.jwtSecret = process.env.JWT_SECRET;
+    
+    if (!this.jwtSecret) {
+      throw new Error('Variável de ambiente JWT_SECRET é obrigatória');
+    }
   }
 
   async hashPassword(password) {
