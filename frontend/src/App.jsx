@@ -1,30 +1,33 @@
-import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import React, { useState, useEffect } from 'react';
 
 import { AuthProvider, useAuth } from './context/auth';
 import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen } from './screens';
+import SplashScreen from './screens/SplashScreen';
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
   const { user, loading } = useAuth();
+  const [showSplash, setShowSplash] = useState(true);
 
-  if (loading) {
-    return null; 
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) return null;
+
+  if (showSplash) {
+    return <SplashScreen />;
   }
 
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-              {user ? (
-          // Usuário logado
-          <Stack.Screen name="Home" component={HomeScreen} />
-        ) : (
-        // Usuário não logado
+      return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {user ? (
+        <Stack.Screen name="Home" component={HomeScreen} />
+      ) : (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="EsqueciSenha" component={EsqueciSenhaScreen} />
