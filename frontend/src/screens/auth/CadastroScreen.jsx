@@ -7,6 +7,8 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useAuth } from '../../context/auth';
 import Button from '../../components/common/Button';
@@ -27,6 +29,7 @@ const CadastroScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
   const { signUp } = useAuth();
+  const [tipo, setTipo] = useState('paciente');
 
   const formatarCPF = (text) => {
     const numbers = text.replace(/\D/g, '');
@@ -72,12 +75,13 @@ const CadastroScreen = ({ navigation }) => {
         },
         body: JSON.stringify({
           nome,
-          cpf,
-          dataNascimento,
           email,
           senha,
-          estado,
-          cidade
+          data_nascimento: dataNascimento, 
+          tipo, 
+          cpf,
+          cidade,
+          estado
         }),
       });
 
@@ -121,6 +125,11 @@ const CadastroScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+      >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
           <View style={styles.header}>
@@ -215,6 +224,30 @@ const CadastroScreen = ({ navigation }) => {
               </View>
             </View>
 
+              <View style={styles.tipoContainer}>
+              <Text style={styles.tipoLabel}>Tipo de usuário</Text>
+              <View style={styles.tipoOptions}>
+                <TouchableOpacity
+                  style={[
+                    styles.tipoOption,
+                    tipo === 'paciente' && styles.tipoOptionSelected
+                  ]}
+                  onPress={() => setTipo('paciente')}
+                >
+                  <Text style={tipo === 'paciente' ? styles.tipoTextSelected : styles.tipoText}>Paciente</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.tipoOption,
+                    tipo === 'dentista' && styles.tipoOptionSelected
+                  ]}
+                  onPress={() => setTipo('dentista')}
+                >
+                  <Text style={tipo === 'dentista' ? styles.tipoTextSelected : styles.tipoText}>Dentista</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <Button
               title={loading ? 'Criando conta...' : 'Criar conta'}
               onPress={handleCadastro}
@@ -228,6 +261,7 @@ const CadastroScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -303,6 +337,42 @@ const styles = StyleSheet.create({
     marginTop: spacing.marginTop,
     textDecorationLine: 'underline',
   },
-});
+    tipoContainer: {
+    marginBottom: spacing.md,
+  },
+  tipoLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 8,
+    color: colors.textPrimary,
+  },
+  tipoOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  tipoOption: {
+    flex: 1,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: spacing.borderRadiusSmall,
+    alignItems: 'center',
+    marginRight: 8,
+    backgroundColor: colors.background,
+  },
+  tipoOptionSelected: {
+    backgroundColor: colors.primary,
+  },
+  tipoText: {
+    color: colors.primary,
+    fontSize: 16,
+  },
+  tipoTextSelected: {
+    color: colors.background,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
+  });
 
 export default CadastroScreen;

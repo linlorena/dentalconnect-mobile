@@ -5,5 +5,3 @@ export { default as EsqueciSenhaScreen } from './auth/EsqueciSenhaScreen';
 
 // Telas principais
 export { default as HomeScreen } from './home/HomeScreen';
-// export { default as ProfileScreen } from './profile/ProfileScreen';
-// export { default as AppointmentsScreen } from './appointments/AppointmentsScreen';

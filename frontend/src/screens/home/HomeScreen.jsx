@@ -9,11 +9,13 @@ import {
   Dimensions,
   Animated,
   StatusBar,
-  LinearGradient,
   FlatList,
+  TextInput,
+  Modal,
 } from 'react-native';
+import { Image } from "react-native";
+import { MaterialIcons, Feather } from '@expo/vector-icons';
 import { useAuth } from '../../context/auth';
-import Button from '../../components/common/Button';
 import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
 
@@ -28,6 +30,8 @@ const HomeScreen = ({ navigation }) => {
   const [rotateAnim] = useState(new Animated.Value(0));
   const [currentSlide, setCurrentSlide] = useState(0);
   const flatListRef = useRef(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuSlideAnim] = useState(new Animated.Value(-width * 0.8));
 
   useEffect(() => {
     // Animação de entrada mais sofisticada
@@ -152,29 +156,108 @@ const HomeScreen = ({ navigation }) => {
 
   const handleLogout = async () => {
     try {
-      await signOut();
-      console.log('Logout realizado com sucesso');
+      await signOut()
+      console.log("Logout realizado com sucesso")
     } catch (error) {
-      console.error('Erro no logout:', error);
+      console.error("Erro no logout:", error)
     }
-  };
+  }
+
+  const menuItems = [
+    { 
+      title: "Buscar Dentistas", 
+      icon: <Feather name="search" size={22} color={colors.primary} />, 
+      onPress: () => {
+        console.log('Buscar Dentistas');
+        setMenuVisible(false);
+      } 
+    },
+    { 
+      title: "Meus Agendamentos", 
+      icon: <Feather name="calendar" size={22} color={colors.primary} />, 
+      onPress: () => {
+        console.log('Meus Agendamentos');
+        setMenuVisible(false);
+      } 
+    },
+    { 
+      title: "Relatórios", 
+      icon: <Feather name="bar-chart-2" size={22} color={colors.primary} />, 
+      onPress: () => {
+        console.log('Relatórios');
+        setMenuVisible(false);
+      } 
+    },
+    { 
+      title: "Configurações", 
+      icon: <Feather name="settings" size={22} color={colors.primary} />, 
+      onPress: () => {
+        console.log('Configurações');
+        setMenuVisible(false);
+      } 
+    },
+    { 
+      title: "Suporte", 
+      icon: <Feather name="headphones" size={22} color={colors.primary} />, 
+      onPress: () => {
+        console.log('Suporte');
+        setMenuVisible(false);
+      } 
+    },
+  ];
+
+  useEffect(() => {
+    if (menuVisible) {
+      Animated.timing(menuSlideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
+    } else {
+      Animated.timing(menuSlideAnim, {
+        toValue: -width * 0.8,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        menuSlideAnim.setValue(-width * 0.8);
+      });
+    }
+  }, [menuVisible, menuSlideAnim]);
+
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.menuButton} onPress={() => setMenuVisible(true)}>
+          <View style={styles.menuIconContainer}>
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
+          </View>
+        </TouchableOpacity>
+
+        <View style={styles.logoContainer}>
+          <Text style={styles.logo}>DentalConnect</Text>
+        </View>
+      </View>
+
+
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header com gradiente e animação */}
-        <Animated.View style={[styles.header, { 
+        {/* Welcome Section Moderna */}
+        <Animated.View style={[styles.welcomeContainer, { 
           opacity: fadeAnim, 
           transform: [
             { translateY: slideAnim },
             { scale: scaleAnim }
           ] 
         }]}>
-          <View style={styles.headerGradient}>
-            <View style={styles.headerPattern} />
-            <View style={styles.headerContent}>
-              <View style={styles.welcomeSection}>
+          <View style={styles.welcomeGradient}>
+            <View style={styles.welcomePattern} />
+            <View style={styles.welcomeContent}>
+              <View style={styles.welcomeTextSection}>
                 <View style={styles.greetingContainer}>
                   <Text style={styles.greeting}>{getGreeting()}! 👋</Text>
                   <View style={styles.greetingGlow} />
@@ -190,7 +273,7 @@ const HomeScreen = ({ navigation }) => {
                   </Text>
                 </View>
               </View>
-              <Animated.View style={[styles.logoContainer, {
+              <Animated.View style={[styles.logoContainerAnimated, {
                 transform: [{
                   rotate: rotateAnim.interpolate({
                     inputRange: [0, 1],
@@ -337,16 +420,21 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </Animated.View>
 
-        {/* Ações rápidas */}
+
+        {/* Ações rápidas modernas */}
         <Animated.View style={[styles.quickActions, { opacity: fadeAnim }]}>
           <View style={styles.quickActionsHeader}>
             <Text style={styles.quickActionsTitle}>Ações Rápidas</Text>
+            <View style={styles.quickActionsSubtitle}>
+              <Text style={styles.quickActionsSubtitleText}>Acesso rápido às principais funcionalidades</Text>
+            </View>
           </View>
           
           <View style={styles.quickActionsGrid}>
             <TouchableOpacity style={styles.quickActionButton} activeOpacity={0.7}>
               <View style={styles.actionIconContainer}>
                 <Text style={styles.quickActionEmoji}>⚙️</Text>
+                <View style={styles.actionIconGlow} />
               </View>
               <Text style={styles.quickActionText}>Configurações</Text>
             </TouchableOpacity>
@@ -354,6 +442,7 @@ const HomeScreen = ({ navigation }) => {
             <TouchableOpacity style={styles.quickActionButton} activeOpacity={0.7}>
               <View style={styles.actionIconContainer}>
                 <Text style={styles.quickActionEmoji}>📞</Text>
+                <View style={styles.actionIconGlow} />
               </View>
               <Text style={styles.quickActionText}>Suporte</Text>
             </TouchableOpacity>
@@ -361,12 +450,76 @@ const HomeScreen = ({ navigation }) => {
             <TouchableOpacity style={styles.quickActionButton} onPress={handleLogout} activeOpacity={0.7}>
               <View style={styles.actionIconContainer}>
                 <Text style={styles.quickActionEmoji}>🚪</Text>
+                <View style={styles.actionIconGlow} />
               </View>
               <Text style={styles.quickActionText}>Sair</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
       </ScrollView>
+
+      {/* Side Menu Modal */}
+      <Modal
+        transparent={true}
+        visible={menuVisible}
+        animationType="none"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity style={styles.modalBackground} onPress={() => setMenuVisible(false)} />
+          <Animated.View style={[styles.sideMenu, { left: menuSlideAnim }]}>
+            <View style={styles.menuHeader}>
+              <View style={styles.menuHeaderContent}>
+                <View style={styles.menuLogoContainer}>
+                  <Text style={styles.menuLogo}>🦷</Text>
+                </View>
+                <Text style={styles.menuTitle}>DentalConnect</Text>
+              </View>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setMenuVisible(false)}>
+                <Feather name="x" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.menuContent}>
+              <View style={styles.menuSection}>
+                <Text style={styles.menuSectionTitle}>Navegação</Text>
+                {menuItems.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.menuItem}
+                    onPress={() => {
+                      item.onPress();
+                    }}
+                  >
+                    <View style={styles.menuItemIconContainer}>
+                      {item.icon}
+                    </View>
+                    <Text style={styles.menuItemText}>{item.title}</Text>
+                    <Feather name="chevron-right" size={16} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <View style={styles.menuDivider} />
+              
+              {/* Botão Sair */}
+              <TouchableOpacity
+                style={styles.menuLogoutItem}
+                onPress={() => {
+                  handleLogout();
+                  setMenuVisible(false);
+                }}
+              >
+                <View style={styles.menuLogoutIconContainer}>
+                  <Feather name="log-out" size={22} color="#FF6B35" />
+                </View>
+                <Text style={styles.menuLogoutText}>Sair da Conta</Text>
+                <Feather name="chevron-right" size={16} color="#FF6B35" />
+              </TouchableOpacity>
+            </ScrollView>
+          </Animated.View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -376,6 +529,52 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.paddingHorizontal,
+    paddingVertical: spacing.md,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  menuButton: {
+    padding: spacing.sm,
+    borderRadius: 8,
+    backgroundColor: 'rgba(15, 118, 110, 0.1)',
+  },
+  menuIconContainer: {
+    width: 20,
+    height: 16,
+    justifyContent: 'space-between',
+  },
+  menuLine: {
+    width: '100%',
+    height: 2,
+    backgroundColor: colors.primary,
+    borderRadius: 1,
+  },
+  logoContainer: {
+    flex: 1,
+    alignItems: "center",
+  },
+  logo: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: colors.primary,
+  },
+  logoutHeaderButton: {
+    backgroundColor: "#FF6B35",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: spacing.borderRadius,
+  },
+  logoutHeaderText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 30,
@@ -383,23 +582,51 @@ const styles = StyleSheet.create({
   
   // Header styles
   header: {
-    backgroundColor: colors.primary,
-    paddingTop: 20,
-    paddingBottom: 30,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.paddingHorizontal,
-    borderBottomLeftRadius: 35,
-    borderBottomRightRadius: 35,
-    marginBottom: 20,
+    paddingVertical: spacing.md,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  welcomeContainer: {
+    marginHorizontal: spacing.paddingHorizontal,
+    marginBottom: 25,
+    borderRadius: 25,
     overflow: 'hidden',
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  headerGradient: {
-    position: 'relative',
+  welcomeGradient: {
     backgroundColor: colors.primary,
+    paddingTop: 25,
+    paddingBottom: 35,
+    paddingHorizontal: spacing.paddingHorizontal,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  welcomePattern: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 25,
+  },
+  welcomeContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  welcomeTextSection: {
+    flex: 1,
   },
   headerPattern: {
     position: 'absolute',
@@ -466,6 +693,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   logoContainer: {
+    flex: 1,
+    alignItems: "center",
+  },
+  logoContainerAnimated: {
     width: 75,
     height: 75,
     backgroundColor: colors.background,
@@ -854,14 +1085,25 @@ const styles = StyleSheet.create({
   },
   quickActionsHeader: {
     paddingHorizontal: spacing.paddingHorizontal,
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: 25,
+    paddingBottom: 20,
+    alignItems: 'center',
   },
   quickActionsTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: colors.textPrimary,
     textAlign: 'center',
+    marginBottom: 8,
+  },
+  quickActionsSubtitle: {
+    marginBottom: 5,
+  },
+  quickActionsSubtitleText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   quickActionsGrid: {
     flexDirection: 'row',
@@ -886,18 +1128,29 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   actionIconContainer: {
-    width: 45,
-    height: 45,
+    width: 50,
+    height: 50,
     backgroundColor: colors.secondary,
-    borderRadius: 23,
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+    position: 'relative',
+  },
+  actionIconGlow: {
+    position: 'absolute',
+    width: 55,
+    height: 55,
+    backgroundColor: 'rgba(15, 118, 110, 0.1)',
+    borderRadius: 27.5,
+    top: -2.5,
+    left: -2.5,
+    zIndex: 1,
   },
   quickActionEmoji: {
     fontSize: 20,
@@ -908,6 +1161,184 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
-});
+  content: {
+    paddingHorizontal: spacing.paddingHorizontal,
+    paddingVertical: spacing.paddingVertical,
+  },
+  welcomeSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.xl,
+  },
+  userAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#E8F4FD",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing.md,
+    position: "relative",
+  },
+  avatarText: {
+    fontSize: 24,
+    color: colors.primary,
+  },
+  onlineIndicator: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "#4CAF50",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  welcomeText: {
+    flex: 1,
+  },
+  greeting: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  question: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    lineHeight: 22,
+  },
+  modalOverlay: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-start",
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  sideMenu: {
+    position: "absolute", 
+    left: 0,             
+    top: 0,               
+    bottom: 0,            
+    width: width * 0.8,
+    backgroundColor: "#fff",
+    paddingTop: 50,
+    zIndex: 10,           
+  },
+  menuHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
+    backgroundColor: colors.primary,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  menuHeaderContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  menuLogoContainer: {
+    width: 40,
+    height: 40,
+    backgroundColor: colors.background,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+  },
+  menuLogo: {
+    fontSize: 20,
+  },
+  menuTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: colors.background,
+  },
+  closeButton: {
+    padding: spacing.sm,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  menuContent: {
+    flex: 1,
+    paddingTop: spacing.md,
+  },
+  menuSection: {
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  menuSectionTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.xs,
+    borderRadius: spacing.borderRadius,
+    backgroundColor: 'transparent',
+  },
+  menuItemIconContainer: {
+    width: 40,
+    height: 40,
+    backgroundColor: 'rgba(15, 118, 110, 0.1)',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+  },
+  menuItemText: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.textPrimary,
+    fontWeight: "500",
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: colors.borderLight,
+    marginHorizontal: spacing.lg,
+    marginVertical: spacing.md,
+  },
+  menuLogoutItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+    borderRadius: spacing.borderRadius,
+    backgroundColor: "#FFF5F5",
+    borderWidth: 1,
+    borderColor: "#FFE5E5",
+  },
+  menuLogoutIconContainer: {
+    width: 40,
+    height: 40,
+    backgroundColor: 'rgba(255, 107, 53, 0.1)',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+  },
+  menuLogoutText: {
+    flex: 1,
+    fontSize: 16,
+    color: "#FF6B35",
+    fontWeight: "600",
+  },
+  
+})
 
-export default HomeScreen;
+export default HomeScreen
