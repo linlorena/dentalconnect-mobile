@@ -65,7 +65,7 @@ const CadastroScreen = ({ navigation }) => {
     try {
       console.log('Iniciando cadastro via backend local...');
       
-      const response = await fetch('http://192.168.0.12:3001/api/cadastro', {
+      const response = await fetch('http://192.168.0.10:3001/api/cadastro', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
