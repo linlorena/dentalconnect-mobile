@@ -34,7 +34,7 @@ const LoginScreen = ({ navigation }) => {
     try {
       console.log('Iniciando login via backend local...');
       
-      const response = await fetch('http://192.168.18.135:3001/api/login', {
+      const response = await fetch('http://192.168.0.10:3001/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
