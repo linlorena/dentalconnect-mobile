@@ -16,6 +16,68 @@ import Input from '../../components/common/Input';
 import PasswordInput from '../../components/common/PasswordInput';
 import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
+import API_CONFIG from '../../config/api';
+// Funções utilitárias inline
+const formatDateForAPI = (dateString) => {
+  if (!dateString) return '';
+  const parts = dateString.split('/');
+  if (parts.length !== 3) return '';
+  const [day, month, year] = parts;
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+};
+
+const isValidDate = (dateString) => {
+  if (!dateString) return false;
+  const parts = dateString.split('/');
+  if (parts.length !== 3) return false;
+  const [day, month, year] = parts;
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() == year && date.getMonth() == month - 1 && date.getDate() == day;
+};
+
+const isNotFutureDate = (dateString) => {
+  if (!isValidDate(dateString)) return false;
+  const parts = dateString.split('/');
+  const [day, month, year] = parts;
+  const date = new Date(year, month - 1, day);
+  const today = new Date();
+  return date <= today;
+};
+
+const isValidCPF = (cpf) => {
+  const cleanCPF = cpf.replace(/\D/g, '');
+  console.log('Validando CPF:', cpf, '-> Limpo:', cleanCPF, 'Tamanho:', cleanCPF.length);
+  
+  // Verificar se tem 11 dígitos
+  if (cleanCPF.length !== 11) {
+    console.log('CPF rejeitado: não tem 11 dígitos');
+    return false;
+  }
+  
+  // Verificar se não é uma sequência de números iguais (11111111111, 22222222222, etc.)
+  if (/(\d)\1{10}/.test(cleanCPF)) {
+    console.log('CPF rejeitado: sequência de números iguais');
+    return false;
+  }
+  
+  console.log('CPF aceito');
+  return true;
+};
+
+const removeCPFFormatting = (cpf) => {
+  return cpf.replace(/\D/g, '');
+};
+
+const isValidEmail = (email) => {
+  if (!email) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const normalizeEmail = (email) => {
+  if (!email) return '';
+  return email.trim().toLowerCase();
+};
 
 const CadastroScreen = ({ navigation }) => {
   const [nome, setNome] = useState('');
@@ -64,38 +126,68 @@ const CadastroScreen = ({ navigation }) => {
       return;
     }
 
+    if (!isValidDate(dataNascimento)) {
+      setErro('Data de nascimento inválida');
+      return;
+    }
+
+    if (!isNotFutureDate(dataNascimento)) {
+      setErro('Data de nascimento não pode ser futura');
+      return;
+    }
+
+    if (!isValidCPF(cpf)) {
+      console.log('CPF inválido:', cpf);
+      setErro('CPF inválido - deve ter 11 dígitos e não pode ser sequência de números iguais. Exemplo: 123.456.789-01');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setErro('Email inválido');
+      return;
+    }
+
     setLoading(true);
     try {
       console.log('Iniciando cadastro via backend local...');
       
-      const response = await fetch('http://192.168.0.10:3001/api/cadastro', {
+      // Converter data de DD/MM/AAAA para AAAA-MM-DD
+      const dataFormatada = formatDateForAPI(dataNascimento);
+      
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USERS}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           nome,
-          email,
+          email: normalizeEmail(email),
           senha,
-          data_nascimento: dataNascimento, 
+          data_nascimento: dataFormatada, 
           tipo, 
-          cpf,
+          cpf: removeCPFFormatting(cpf),
           cidade,
           estado
         }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('Erro ao fazer parse do JSON:', parseError);
+        throw new Error('Resposta inválida do servidor');
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro no cadastro');
+        throw new Error(data.error || data.message || 'Erro no cadastro');
       }
 
       console.log('Cadastro realizado com sucesso:', data);
       
       Alert.alert(
         'Sucesso!',
-        'Conta criada com sucesso!',
+        'Conta criada com sucesso! Você pode fazer login agora.',
         [
           {
             text: 'OK',
@@ -116,8 +208,29 @@ const CadastroScreen = ({ navigation }) => {
       
     } catch (error) {
       console.error('Erro no cadastro:', error);
-      setErro('Falha ao criar conta. Tente novamente.');
-      Alert.alert('Erro', error.message);
+      
+      let errorMessage = 'Falha ao criar conta. Tente novamente.';
+      
+      if (error.message.includes('Email já cadastrado')) {
+        errorMessage = 'Este email já está cadastrado. Tente fazer login.';
+      } else if (error.message.includes('duplicate key value violates unique constraint')) {
+        errorMessage = 'CPF já cadastrado. Tente fazer login.';
+      } else if (error.message.includes('Resposta inválida do servidor')) {
+        errorMessage = 'Servidor não está respondendo. Verifique se o backend está rodando.';
+      } else if (error.message.includes('Todos os campos são obrigatórios')) {
+        errorMessage = 'Por favor, preencha todos os campos obrigatórios.';
+      } else if (error.message.includes('Tipo de usuário inválido')) {
+        errorMessage = 'Tipo de usuário inválido. Deve ser paciente ou dentista.';
+      } else if (error.message.includes('Erro interno do servidor')) {
+        errorMessage = 'Erro interno do servidor. Tente novamente mais tarde.';
+      } else if (error.message.includes('Todos os campos são obrigatórios')) {
+        errorMessage = 'Por favor, preencha todos os campos obrigatórios.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setErro(errorMessage);
+      Alert.alert('Erro', errorMessage);
     } finally {
       setLoading(false);
     }

@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import React, { useState, useEffect } from 'react';
 
 import { AuthProvider, useAuth } from './context/auth';
-import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen } from './screens';
+import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen, ConfiguracoesScreen } from './screens';
 import SplashScreen from './screens/SplashScreen';
 
 const Stack = createStackNavigator();
@@ -26,7 +26,10 @@ const AppNavigator = () => {
       return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {user ? (
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
+        </>
       ) : (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
