@@ -50,7 +50,7 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true);
     try {
       console.log('Iniciando login via backend local...');
-      
+
       const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LOGIN}`, {
         method: 'POST',
         headers: {

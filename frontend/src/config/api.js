@@ -1,11 +1,11 @@
 // Configuração da API
 const API_CONFIG = {
-  BASE_URL: 'http://192.168.0.10:3001/api',
+  BASE_URL: 'http://192.168.0.92:3001/api',
   ENDPOINTS: {
     LOGIN: '/login',
     USERS: '/users',
     LOCALS: '/locals',
-    DENTISTS: '/dentists',
+    DENTISTS: '/dentists/nome',
     CONSULTATION: '/consultation',
     SERVICES: '/services',
     MAIL: '/mail',

@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import React, { useState, useEffect } from 'react';
-
+import { useState, useEffect } from 'react';
+import BuscarDentistaScreen from './screens/home/BuscarDentistaScreen';
 import { AuthProvider, useAuth } from './context/auth';
 import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen, ConfiguracoesScreen } from './screens';
 import SplashScreen from './screens/SplashScreen';
@@ -29,6 +29,8 @@ const AppNavigator = () => {
         <>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
+          <Stack.Screen name="BuscarDentista" component={BuscarDentistaScreen} options={{ title: 'Buscar Dentista' }}
+  />
         </>
       ) : (
         <>
