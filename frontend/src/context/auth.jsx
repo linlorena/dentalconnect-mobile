@@ -5,16 +5,30 @@ const AuthContext = createContext({});
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState(null);
 
-  const signIn = async (email, password) => {
+  const signIn = async (email, password, userData = null) => {
     try {
       setLoading(true);
       console.log('Tentando fazer login com:', email);
       
-      // O login real é feito no backend, aqui apenas simulamos o estado
-      setUser({ email, id: 'local-user' });
-      
-      console.log('Login bem-sucedido via backend');
+      // Se userData foi fornecido, usar os dados reais do backend
+      if (userData) {
+        setUser({
+          id: userData.id,
+          nome: userData.nome,
+          email: userData.email,
+          tipo: userData.tipo,
+          avatar: userData.avatar,
+          token: userData.token
+        });
+        setToken(userData.token);
+        console.log('Login bem-sucedido com dados do backend:', userData);
+      } else {
+        // Fallback para dados simulados
+        setUser({ email, id: 'local-user', nome: 'Usuário Teste' });
+        console.log('Login bem-sucedido com dados simulados');
+      }
     } catch (error) {
       console.error('Erro no signIn:', error);
       throw error;
@@ -43,6 +57,7 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     try {
       setUser(null);
+      setToken(null);
       console.log('Logout realizado');
     } catch (error) {
       console.error('Erro no signOut:', error);
@@ -64,6 +79,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        token,
         loading,
         signIn,
         signUp,

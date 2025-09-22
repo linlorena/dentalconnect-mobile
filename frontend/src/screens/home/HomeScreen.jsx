@@ -192,8 +192,8 @@ const HomeScreen = ({ navigation }) => {
       title: "Configurações", 
       icon: <Feather name="settings" size={22} color={colors.primary} />, 
       onPress: () => {
-        console.log('Configurações');
         setMenuVisible(false);
+        navigation.navigate('Configuracoes');
       } 
     },
     { 

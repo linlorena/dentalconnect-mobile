@@ -14,6 +14,18 @@ import Input from '../../components/common/Input';
 import PasswordInput from '../../components/common/PasswordInput';
 import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
+import API_CONFIG from '../../config/api';
+// Funções utilitárias inline
+const isValidEmail = (email) => {
+  if (!email) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const normalizeEmail = (email) => {
+  if (!email) return '';
+  return email.trim().toLowerCase();
+};
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -30,39 +42,72 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
+    if (!isValidEmail(email)) {
+      setErro('Email inválido');
+      return;
+    }
+
     setLoading(true);
     try {
       console.log('Iniciando login via backend local...');
       
-      const response = await fetch('http://192.168.0.10:3001/api/login', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LOGIN}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
+          email: normalizeEmail(email),
           senha: password
         }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('Erro ao fazer parse do JSON:', parseError);
+        throw new Error('Resposta inválida do servidor');
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro no login');
+        throw new Error(data.error || data.message || 'Erro no login');
       }
 
       console.log('Login realizado com sucesso:', data);
       
-      if (data.user && data.user.token) {
-        console.log('Token JWT recebido:', data.user.token);
+      if (data.user && data.token) {
+        console.log('Token JWT recebido:', data.token);
+        
+        // Passar os dados reais do usuário para o contexto
+        await signIn(email, password, {
+          ...data.user,
+          token: data.token
+        });
+      } else {
+        // Fallback para dados simulados
+        await signIn(email, password);
       }
-      
-      await signIn(email, password);
       
     } catch (error) {
       console.error('Erro no login:', error);
-      setErro('Falha ao fazer login. Verifique suas credenciais.');
-      Alert.alert('Erro', error.message);
+      
+      let errorMessage = 'Falha ao fazer login. Verifique suas credenciais.';
+      
+      if (error.message.includes('Credenciais inválidas')) {
+        errorMessage = 'Email ou senha incorretos. Tente novamente.';
+      } else if (error.message.includes('Email e senha são obrigatórios')) {
+        errorMessage = 'Por favor, preencha todos os campos.';
+      } else if (error.message.includes('Resposta inválida do servidor')) {
+        errorMessage = 'Servidor não está respondendo. Verifique se o backend está rodando.';
+      } else if (error.message.includes('Erro interno do servidor')) {
+        errorMessage = 'Erro interno do servidor. Tente novamente mais tarde.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setErro(errorMessage);
+      Alert.alert('Erro', errorMessage);
     } finally {
       setLoading(false);
     }
