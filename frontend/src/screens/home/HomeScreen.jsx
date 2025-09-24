@@ -164,13 +164,13 @@ const HomeScreen = ({ navigation }) => {
   }
 
   const menuItems = [
-    { 
-      title: "Buscar Dentistas", 
-      icon: <Feather name="search" size={22} color={colors.primary} />, 
+    {
+      title: "Buscar Dentistas",
+      icon: <Feather name="search" size={22} color={colors.primary} />,
       onPress: () => {
-        console.log('Buscar Dentistas');
         setMenuVisible(false);
-      } 
+        navigation.navigate('BuscarDentista');
+      }
     },
     { 
       title: "Meus Agendamentos", 
@@ -315,20 +315,24 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.cardShine} />
               </View>
             </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.featureCard, styles.secondaryCard]} activeOpacity={0.8}>
-              <View style={styles.cardGradient}>
-                <View style={styles.cardIcon}>
-                  <Text style={styles.cardEmoji}>🔍</Text>
+              <TouchableOpacity 
+                style={[styles.featureCard, styles.secondaryCard]} 
+                activeOpacity={0.8}
+                onPress={() => {
+                  navigation.navigate('BuscarDentista');
+                }}
+              >
+                <View style={styles.cardGradient}>
+                  <View style={styles.cardIcon}>
+                    <Text style={styles.cardEmoji}>🔍</Text>
+                  </View>
+                  <Text style={styles.cardTitle}>Buscar Dentistas</Text>
+                  <Text style={styles.cardDescription}>Encontre profissionais</Text>
+                  <View style={styles.cardArrow}>
+                    <Text style={styles.arrowText}>→</Text>
+                  </View>
                 </View>
-                <Text style={styles.cardTitle}>Buscar Dentistas</Text>
-                <Text style={styles.cardDescription}>Encontre profissionais</Text>
-                <View style={styles.cardArrow}>
-                  <Text style={styles.arrowText}>→</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-
+              </TouchableOpacity>
             <TouchableOpacity style={[styles.featureCard, styles.tertiaryCard]} activeOpacity={0.8}>
               <View style={styles.cardGradient}>
                 <View style={styles.cardIcon}>
