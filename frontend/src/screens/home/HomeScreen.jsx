@@ -202,6 +202,7 @@ const HomeScreen = ({ navigation }) => {
       onPress: () => {
         console.log('Suporte');
         setMenuVisible(false);
+        navigation.navigate('FaleConosco');
       } 
     },
   ];
