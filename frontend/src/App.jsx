@@ -5,6 +5,7 @@ import BuscarDentistaScreen from './screens/home/BuscarDentistaScreen';
 import { AuthProvider, useAuth } from './context/auth';
 import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen, ConfiguracoesScreen } from './screens';
 import SplashScreen from './screens/SplashScreen';
+import DetalhesAgendamento from './screens/home/DetalhesAgendamento';
 
 const Stack = createStackNavigator();
 
@@ -29,7 +30,9 @@ const AppNavigator = () => {
         <>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
+          <Stack.Screen name="DetalhesAgendamento" component={DetalhesAgendamento} />
           <Stack.Screen name="BuscarDentista" component={BuscarDentistaScreen} options={{ title: 'Buscar Dentista' }}
+          
   />
         </>
       ) : (

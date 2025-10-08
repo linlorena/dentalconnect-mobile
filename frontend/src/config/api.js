@@ -1,6 +1,6 @@
 // Configuração da API
 const API_CONFIG = {
-  BASE_URL: 'http://192.168.0.92:3001/api',
+  BASE_URL: 'http://192.168.1.5:3001/api',
   ENDPOINTS: {
     LOGIN: '/login',
     USERS: '/users',

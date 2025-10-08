@@ -19,6 +19,21 @@ import { useAuth } from '../../context/auth';
 import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
 
+const dummyAppointment = {
+  id: '1',
+  servico: 'Limpeza e Profilaxia',
+  data: '2025-10-25',
+  horario: '10:00',
+  dentista: {
+    usuario: {
+      nome: 'Ana Silva',
+      email: 'ana.silva@dentalconnect.com',
+      avatar: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
+    },
+    numero_cro: 'CRO-SP-54321',
+  },
+};
+
 const { width, height } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }) => {
@@ -172,14 +187,15 @@ const HomeScreen = ({ navigation }) => {
         navigation.navigate('BuscarDentista');
       }
     },
+
     { 
       title: "Meus Agendamentos", 
       icon: <Feather name="calendar" size={22} color={colors.primary} />, 
       onPress: () => {
-        console.log('Meus Agendamentos');
-        setMenuVisible(false);
-      } 
-    },
+        setMenuVisible(false); 
+        navigation.navigate('DetalhesAgendamento', { agendamento: dummyAppointment }); 
+  } 
+},
     { 
       title: "Relatórios", 
       icon: <Feather name="bar-chart-2" size={22} color={colors.primary} />, 
@@ -333,7 +349,8 @@ const HomeScreen = ({ navigation }) => {
                   </View>
                 </View>
               </TouchableOpacity>
-            <TouchableOpacity style={[styles.featureCard, styles.tertiaryCard]} activeOpacity={0.8}>
+            <TouchableOpacity style={[styles.featureCard, styles.tertiaryCard]} activeOpacity={0.8} onPress={() => navigation.navigate('DetalhesAgendamento', { agendamento: dummyAppointment })}>
+              
               <View style={styles.cardGradient}>
                 <View style={styles.cardIcon}>
                   <Text style={styles.cardEmoji}>📋</Text>
