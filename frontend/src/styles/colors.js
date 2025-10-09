@@ -1,17 +1,17 @@
 export const colors = {
   // Cores principais
-  primary: '#0f766e',
-  primaryLight: '#14b8a6',
+  primary: '#0F76AE',
+  primaryLight: '#4ECDC4',
   primaryDark: '#0d5a52',
   
   // Cores secundárias
-  secondary: '#f3f4f6',
+  secondary: '#F0F9FF',
   secondaryLight: '#f9fafb',
   secondaryDark: '#e5e7eb',
   
   // Cores de texto
-  textPrimary: '#374151',
-  textSecondary: '#6b7280',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
   textLight: '#9ca3af',
   
   // Cores de estado

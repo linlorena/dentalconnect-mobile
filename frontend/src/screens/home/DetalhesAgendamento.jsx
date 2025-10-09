@@ -33,7 +33,7 @@ const DetalhesAgendamento = ({ route }) => {
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Feather name="arrow-left" size={24} color={colors.primary} />
           </TouchableOpacity>
-          <Text style={styles.title}>Detalhes do Agendamento</Text>
+          <Text style={styles.title}>Agendamentos</Text>
         </View>
 
         <View style={styles.card}>
