@@ -3,9 +3,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useState, useEffect } from 'react';
 import BuscarDentistaScreen from './screens/home/BuscarDentistaScreen';
 import { AuthProvider, useAuth } from './context/auth';
-import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen, ConfiguracoesScreen } from './screens';
+import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen, ConfiguracoesScreen, AgendarConsultaScreen, DetalhesLocalScreen, ClinicasPorCidadeScreen } from './screens';
 import SplashScreen from './screens/SplashScreen';
 import FaleConoscoScreen from './screens/home/FaleConosco';
+import DetalhesAgendamento from './screens/home/DetalhesAgendamento';
 
 const Stack = createStackNavigator();
 
@@ -32,6 +33,11 @@ const AppNavigator = () => {
           <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
           <Stack.Screen name="BuscarDentista" component={BuscarDentistaScreen} options={{ title: 'Buscar Dentista' }} />
           <Stack.Screen name="FaleConosco" component={FaleConoscoScreen} />
+          <Stack.Screen name="DetalhesAgendamento" component={DetalhesAgendamento} />
+          <Stack.Screen name="BuscarDentista" component={BuscarDentistaScreen} options={{ title: 'Buscar Dentista' }} />
+          <Stack.Screen name="AgendarConsulta" component={AgendarConsultaScreen} options={{ title: 'Agendar Consulta' }} />
+          <Stack.Screen name="DetalhesLocal" component={DetalhesLocalScreen} options={{ title: 'Detalhes da Clínica' }} />
+          <Stack.Screen name="ClinicasPorCidade" component={ClinicasPorCidadeScreen} options={{ title: 'Clínicas por Cidade' }} />
         </>
       ) : (
         <>

@@ -10,14 +10,27 @@ import {
   Animated,
   StatusBar,
   FlatList,
-  TextInput,
   Modal,
 } from 'react-native';
-import { Image } from "react-native";
-import { MaterialIcons, Feather } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../../context/auth';
 import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
+
+const dummyAppointment = {
+  id: '1',
+  servico: 'Limpeza e Profilaxia',
+  data: '2025-10-25',
+  horario: '10:00',
+  dentista: {
+    usuario: {
+      nome: 'Ana Silva',
+      email: 'ana.silva@dentalconnect.com',
+      avatar: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
+    },
+    numero_cro: 'CRO-SP-54321',
+  },
+};
 
 const { width, height } = Dimensions.get('window');
 
@@ -165,6 +178,14 @@ const HomeScreen = ({ navigation }) => {
 
   const menuItems = [
     {
+      title: "Agendar Consulta",
+      icon: <Feather name="calendar" size={22} color={colors.primary} />,
+      onPress: () => {
+        setMenuVisible(false);
+        navigation.navigate('AgendarConsulta');
+      }
+    },
+    {
       title: "Buscar Dentistas",
       icon: <Feather name="search" size={22} color={colors.primary} />,
       onPress: () => {
@@ -176,15 +197,15 @@ const HomeScreen = ({ navigation }) => {
       title: "Meus Agendamentos", 
       icon: <Feather name="calendar" size={22} color={colors.primary} />, 
       onPress: () => {
-        console.log('Meus Agendamentos');
         setMenuVisible(false);
+        navigation.navigate('DetalhesAgendamento', { agendamento: dummyAppointment });
       } 
     },
     { 
-      title: "Relatórios", 
-      icon: <Feather name="bar-chart-2" size={22} color={colors.primary} />, 
+      title: "Procedimentos", 
+      icon: <Feather name="activity" size={22} color={colors.primary} />, 
       onPress: () => {
-        console.log('Relatórios');
+        console.log('Procedimentos');
         setMenuVisible(false);
       } 
     },
@@ -298,17 +319,21 @@ const HomeScreen = ({ navigation }) => {
           </View>
           
           <View style={styles.featuresGrid}>
-            <TouchableOpacity style={[styles.featureCard, styles.primaryCard]} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={[styles.featureCard, styles.primaryCard]} 
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('AgendarConsulta')}
+            >
               <View style={styles.cardGradient}>
                 <View style={styles.cardGlassEffect} />
                 <View style={styles.cardIcon}>
-                  <Text style={styles.cardEmoji}>📅</Text>
+                  <Text style={styles.cardEmoji}>🏥</Text>
                   <View style={styles.cardIconGlow} />
                 </View>
                 <Text style={styles.cardTitle}>Agendar Consulta</Text>
-                <Text style={styles.cardDescription}>Marque sua consulta</Text>
+                <Text style={styles.cardDescription}>Escolha sua cidade e clínica preferida</Text>
                 <View style={styles.cardBadge}>
-                  <Text style={styles.badgeText}>Popular</Text>
+                  <Text style={styles.badgeText}>Rápido</Text>
                 </View>
                 <View style={styles.cardArrow}>
                   <Text style={styles.arrowText}>→</Text>
@@ -325,35 +350,41 @@ const HomeScreen = ({ navigation }) => {
               >
                 <View style={styles.cardGradient}>
                   <View style={styles.cardIcon}>
-                    <Text style={styles.cardEmoji}>🔍</Text>
+                    <Text style={styles.cardEmoji}>👨‍⚕️</Text>
                   </View>
                   <Text style={styles.cardTitle}>Buscar Dentistas</Text>
-                  <Text style={styles.cardDescription}>Encontre profissionais</Text>
+                  <Text style={styles.cardDescription}>Encontre especialistas próximos</Text>
+                  <View style={styles.cardBadge}>
+                    <Text style={styles.badgeText}>Próximo</Text>
+                  </View>
                   <View style={styles.cardArrow}>
                     <Text style={styles.arrowText}>→</Text>
                   </View>
                 </View>
               </TouchableOpacity>
-            <TouchableOpacity style={[styles.featureCard, styles.tertiaryCard]} activeOpacity={0.8}>
+            <TouchableOpacity style={[styles.featureCard, styles.tertiaryCard]} activeOpacity={0.8}  onPress={() => navigation.navigate('DetalhesAgendamento', { agendamento: dummyAppointment })}>
               <View style={styles.cardGradient}>
                 <View style={styles.cardIcon}>
-                  <Text style={styles.cardEmoji}>📋</Text>
+                  <Text style={styles.cardEmoji}>📅</Text>
                 </View>
                 <Text style={styles.cardTitle}>Meus Agendamentos</Text>
-                <Text style={styles.cardDescription}>Veja suas consultas</Text>
+                <Text style={styles.cardDescription}>Veja suas consultas marcadas</Text>
                 <View style={styles.cardArrow}>
                   <Text style={styles.arrowText}>→</Text>
                 </View>
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.featureCard, styles.quaternaryCard]} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={[styles.featureCard, styles.quaternaryCard]} 
+              activeOpacity={0.8}
+            >
               <View style={styles.cardGradient}>
                 <View style={styles.cardIcon}>
-                  <Text style={styles.cardEmoji}>📊</Text>
+                  <Text style={styles.cardEmoji}>🦷</Text>
                 </View>
-                <Text style={styles.cardTitle}>Relatórios</Text>
-                <Text style={styles.cardDescription}>Acompanhe seu histórico</Text>
+                <Text style={styles.cardTitle}>Procedimentos</Text>
+                <Text style={styles.cardDescription}>Conheça nossos tratamentos</Text>
                 <View style={styles.cardArrow}>
                   <Text style={styles.arrowText}>→</Text>
                 </View>
@@ -854,29 +885,34 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   cardDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 18,
     marginBottom: 8,
+    fontWeight: '500',
   },
   cardBadge: {
     position: 'absolute',
     top: 16,
     right: 16,
     backgroundColor: colors.primary,
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.background,
-    fontWeight: '700',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   cardArrow: {
     position: 'absolute',
