@@ -315,7 +315,7 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
                 style={styles.primaryButtonGradient}
               >
                 <Ionicons name="calendar" size={20} color={colors.white} />
-                <Text style={styles.primaryButtonText}>Agendar Consulta</Text>
+                <Text style={styles.primaryButtonText}>Agendar Avaliação</Text>
               </LinearGradient>
             </TouchableOpacity>
 
