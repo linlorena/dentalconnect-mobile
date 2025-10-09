@@ -307,7 +307,10 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
           >
             <TouchableOpacity
               style={styles.primaryButton}
-              onPress={handleAgendarConsulta}
+              onPress={navigation.navigate('SelecionarHorarioScreen', { 
+                clinicaId: local.id,
+                nomeDaClinica: local.nome, 
+            })}
               activeOpacity={0.8}
             >
               <LinearGradient

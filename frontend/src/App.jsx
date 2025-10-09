@@ -8,6 +8,7 @@ import SplashScreen from './screens/SplashScreen';
 import FaleConoscoScreen from './screens/home/FaleConosco';
 import DetalhesAgendamento from './screens/home/DetalhesAgendamento';
 import ProcedimentosScreen from './screens/home/ProcedimentosScreen';
+import SelecionarHorarioScreen from './screens/home/SelecionarHorarioScreen';
 
 const Stack = createStackNavigator();
 
@@ -39,6 +40,7 @@ const AppNavigator = () => {
           <Stack.Screen name="DetalhesLocal" component={DetalhesLocalScreen} options={{ title: 'Detalhes da Clínica' }} />
           <Stack.Screen name="ClinicasPorCidade" component={ClinicasPorCidadeScreen} options={{ title: 'Clínicas por Cidade' }} />
           <Stack.Screen name="Procedimentos" component={ProcedimentosScreen} options={{ title: 'Procedimentos' }} />
+          <Stack.Screen name="SelecionarHorarioScreen" component={SelecionarHorarioScreen} options={{ title: 'SelecionarHorarioScreen' }} />
         </>
       ) : (
         <>
