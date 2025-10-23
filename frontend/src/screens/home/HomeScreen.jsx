@@ -34,6 +34,11 @@ const dummyAppointment = {
 
 const { width } = Dimensions.get('window' );
 
+const getFirstName = (fullName) => {
+  if (!fullName) return 'Usuário';
+  return fullName.split(' ')[0];
+};
+
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { user, signOut } = useAuth();
@@ -46,8 +51,7 @@ const HomeScreen = () => {
   const flatListRef = useRef(null);
   const [menuVisible, setMenuVisible] = useState(false);
 
-  // Valor unificado para controlar a animação do menu
-  const menuAnimation = useRef(new Animated.Value(0)).current; // 0 = fechado, 1 = aberto
+  const menuAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -92,16 +96,16 @@ const HomeScreen = () => {
   const renderTreatmentSlide = ({ item }) => (
     <View style={styles.treatmentSlide}>
       <View style={[styles.treatmentRow, { marginBottom: 28 }]}> 
-      <TouchableOpacity style={styles.treatmentCard} activeOpacity={0.7}>
-        <View style={[styles.treatmentIcon, { backgroundColor: item[0].color + '15' }]}><MaterialCommunityIcons name={item[0].icon} size={24} color={item[0].color} /></View>
-        <Text style={styles.treatmentTitle}>{item[0].title}</Text>
-        <Text style={styles.treatmentDescription}>{item[0].description}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.treatmentCard} activeOpacity={0.7}>
-        <View style={[styles.treatmentIcon, { backgroundColor: item[1].color + '15' }]}><MaterialCommunityIcons name={item[1].icon} size={24} color={item[1].color} /></View>
-        <Text style={styles.treatmentTitle}>{item[1].title}</Text>
-        <Text style={styles.treatmentDescription}>{item[1].description}</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.treatmentCard} activeOpacity={0.7}>
+          <View style={[styles.treatmentIcon, { backgroundColor: item[0].color + '15' }]}><MaterialCommunityIcons name={item[0].icon} size={24} color={item[0].color} /></View>
+          <Text style={styles.treatmentTitle}>{item[0].title}</Text>
+          <Text style={styles.treatmentDescription}>{item[0].description}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.treatmentCard} activeOpacity={0.7}>
+          <View style={[styles.treatmentIcon, { backgroundColor: item[1].color + '15' }]}><MaterialCommunityIcons name={item[1].icon} size={24} color={item[1].color} /></View>
+          <Text style={styles.treatmentTitle}>{item[1].title}</Text>
+          <Text style={styles.treatmentDescription}>{item[1].description}</Text>
+        </TouchableOpacity>
       </View>
       <View style={styles.treatmentRow}>
         <TouchableOpacity style={styles.treatmentCard} activeOpacity={0.7}>
@@ -145,13 +149,12 @@ const HomeScreen = () => {
     Animated.spring(menuAnimation, {
       toValue,
       friction: 10,
-      useNativeDriver: false, // 'false' porque estamos a animar a opacidade do overlay
+      useNativeDriver: false,
     }).start();
   };
 
   const onMenuItemPress = (item) => {
     toggleMenu();
-    // Adiciona um pequeno delay para a animação de fechar começar antes da navegação
     setTimeout(() => {
       item.onPress();
     }, 250);
@@ -192,7 +195,7 @@ const HomeScreen = () => {
             <View style={styles.welcomeContent}>
               <View style={styles.welcomeTextSection}>
                 <View style={styles.greetingContainer}><Text style={styles.greeting}>{getGreeting()}! 👋</Text></View>
-                <Text style={styles.userName}>{user?.email?.split('@')[0] || 'Usuário'}</Text>
+                <Text style={styles.userName}>{getFirstName(user?.nome)}</Text>
                 <Text style={styles.subtitle}>Bem-vindo ao DentalConnect</Text>
                 <View style={styles.timeContainer}><Feather name="clock" size={12} color={colors.background} style={{ marginRight: 4 }} /><Text style={styles.timeText}>{currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Text></View>
               </View>
@@ -236,7 +239,6 @@ const HomeScreen = () => {
         </Animated.View>
       </ScrollView>
 
-      {/* Menu Lateral Renderizado Acima de Tudo */}
       {menuVisible && (
         <Animated.View style={[styles.modalOverlay, { opacity: overlayOpacity }]}>
           <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={toggleMenu} />
