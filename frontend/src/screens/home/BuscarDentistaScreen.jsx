@@ -7,7 +7,6 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Keyboard,
   Image,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';

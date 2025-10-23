@@ -36,7 +36,7 @@ const FaleConoscoScreen = ({ navigation }) => {
 
     try {
       const response = await axios.post(
-        "http://192.168.0.33:3001/api/fale-conosco",
+        "http://192.168.1.4:3001/api/fale-conosco",
         {
           nome,
           email,
