@@ -7,6 +7,7 @@ import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen, Configurac
 import SplashScreen from './screens/SplashScreen';
 import FaleConoscoScreen from './screens/home/FaleConosco';
 import DetalhesAgendamento from './screens/home/DetalhesAgendamento';
+import DetalhesAgendamentoItem from './screens/home/MeusAgendamentos';
 import ProcedimentosScreen from './screens/home/ProcedimentosScreen';
 import SelecionarHorarioScreen from './screens/home/SelecionarHorarioScreen';
 
@@ -35,6 +36,7 @@ const AppNavigator = () => {
           <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
           <Stack.Screen name="FaleConosco" component={FaleConoscoScreen} />
           <Stack.Screen name="DetalhesAgendamento" component={DetalhesAgendamento} />
+          <Stack.Screen name="DetalhesAgendamentoItem" component={DetalhesAgendamentoItem} />
           <Stack.Screen name="BuscarDentista" component={BuscarDentistaScreen} options={{ title: 'Buscar Dentista' }} />
           <Stack.Screen name="AgendarConsulta" component={AgendarConsultaScreen} options={{ title: 'Agendar Avaliação' }} />
           <Stack.Screen name="DetalhesLocal" component={DetalhesLocalScreen} options={{ title: 'Detalhes da Clínica' }} />
