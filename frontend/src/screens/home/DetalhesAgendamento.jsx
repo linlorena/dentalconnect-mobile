@@ -1,212 +1,440 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
 import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
 import { useAuth } from '../../context/auth';
 import API_CONFIG from '../../config/api';
 
-const DetalhesAgendamento = ({ route }) => {
+const DetalhesAgendamento = () => {
   const navigation = useNavigation();
-  const { id } = route.params; // ID do agendamento que queremos
-  const { token, avatar: userAvatar, id: userId } = useAuth();
+  const { user, token } = useAuth();
 
-  const [agendamento, setAgendamento] = useState(null);
-  const [local, setLocal] = useState(null);
+  const [agendamentos, setAgendamentos] = useState([]);
+  const [locais, setLocais] = useState([]);
+  const [dentistas, setDentistas] = useState({});
   const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState('');
-
-  const formatarData = (dataString) => {
-    const [year, month, day] = dataString.split('-');
-    return `${day}/${month}/${year}`;
-  };
-
-  const getAvatarUrl = (avatarUrl) => {
-    if (!avatarUrl || avatarUrl === 'null' || avatarUrl === 'undefined' || avatarUrl.trim() === '') {
-      return null;
-    }
-    return avatarUrl;
-  };
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchAgendamentoCompleto = async () => {
-      if (!token) {
-        setErro('Token não encontrado. Faça login novamente.');
-        setLoading(false);
-        return;
-      }
+    fetchAgendamentos();
+  }, []);
 
-      try {
-        const headers = { Authorization: `Bearer ${token}` };
+  const fetchAgendamentos = async () => {
+    if (!token || !user?.id) {
+      setError('Usuário não autenticado. Por favor, faça login novamente.');
+      setLoading(false);
+      return;
+    }
 
-        // 1️⃣ Buscar todos os agendamentos do paciente
-        const agendamentosRes = await axios.get(`${API_CONFIG.BASE_URL}/api/consultation/paciente/${userId}`, { headers });
-        const agendamentoData = agendamentosRes.data.find(a => a.id === id);
+    try {
+      setLoading(true);
+      setError(null);
 
-        if (!agendamentoData) {
-          setErro('Agendamento não encontrado.');
-          setLoading(false);
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+
+      // Buscar agendamentos e locais em paralelo
+      const [agendamentosRes, locaisRes] = await Promise.all([
+        fetch(
+          `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CONSULTATION}/paciente/${user.id}`,
+          { headers }
+        ),
+        fetch(
+          `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LOCALS}`,
+          { headers }
+        )
+      ]);
+
+      if (!agendamentosRes.ok || !locaisRes.ok) {
+        if (agendamentosRes.status === 401 || locaisRes.status === 401) {
+          setError('Sessão expirada. Por favor, faça login novamente.');
           return;
         }
+        throw new Error('Erro ao buscar agendamentos');
+      }
 
-        // 2️⃣ Buscar dentista
-        let dentistaNome = 'Dentista não encontrado';
-        let dentistaCRO = '-';
-        if (agendamentoData.dentista) {
+      const agendamentosData = await agendamentosRes.json();
+      const locaisData = await locaisRes.json();
+
+      setAgendamentos(agendamentosData);
+      setLocais(locaisData);
+
+      // Buscar informações dos dentistas
+      const dentistasMap = {};
+      const dentistaPromises = agendamentosData.map(async (agendamento) => {
+        if (agendamento.dentista && !dentistasMap[agendamento.dentista]) {
           try {
-            const dentistaRes = await axios.get(`${API_CONFIG.BASE_URL}/api/dentists/${agendamentoData.dentista}`, { headers });
-            dentistaNome = dentistaRes.data.usuario?.nome || dentistaNome;
-            dentistaCRO = dentistaRes.data.numero_cro || dentistaCRO;
-          } catch {
-            console.warn('Dentista não encontrado');
+            const dentistaRes = await fetch(
+              `${API_CONFIG.BASE_URL}/dentists/${agendamento.dentista}`,
+              { headers }
+            );
+            if (dentistaRes.ok) {
+              const dentistaData = await dentistaRes.json();
+              dentistasMap[agendamento.dentista] = dentistaData;
+            }
+          } catch (err) {
+            console.error('Erro ao buscar dentista:', err);
           }
         }
+      });
 
-        // 3️⃣ Buscar todos os locais
-        let localData = null;
-        try {
-          const locaisRes = await axios.get(`${API_CONFIG.BASE_URL}/api/locals`, { headers });
-          localData = locaisRes.data.find(l => l.id === agendamentoData.local);
-        } catch {
-          console.warn('Não foi possível buscar locais');
-        }
+      await Promise.all(dentistaPromises);
+      setDentistas(dentistasMap);
+    } catch (err) {
+      console.error('Erro ao buscar agendamentos:', err);
+      setError('Erro ao carregar agendamentos. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        // 4️⃣ Procedimento
-        const procedimentoNome = (agendamentoData.servico && agendamentoData.servico.nome) 
-          ? agendamentoData.servico.nome 
-          : 'Consulta de Rotina';
-
-        setAgendamento({
-          ...agendamentoData,
-          dentista_nome: dentistaNome,
-          dentista_cro: dentistaCRO,
-          procedimento_nome: procedimentoNome,
-          user_avatar: agendamentoData.paciente?.avatar || userAvatar,
-        });
-
-        setLocal(localData);
-      } catch (error) {
-        console.error('Erro ao buscar agendamento:', error);
-        setErro('Não foi possível carregar os detalhes do agendamento.');
-      } finally {
-        setLoading(false);
-      }
+  const formatarData = (dataString) => {
+    if (!dataString) return { dia: '-', mes: '-', ano: '-' };
+    const [year, month, day] = dataString.split('-').map(Number);
+    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    return {
+      dia: day < 10 ? `0${day}` : day.toString(),
+      mes: meses[month - 1],
+      dataCompleta: `${day}/${month}/${year}`
     };
+  };
 
-    fetchAgendamentoCompleto();
-  }, [id, token, userId]);
+  const getDiaSemana = (dataString) => {
+    if (!dataString) return '';
+    const diasSemana = [
+      'Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'
+    ];
+    const [year, month, day] = dataString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return diasSemana[date.getDay()];
+  };
+
+  const formatarHorario = (horario) => {
+    if (!horario) return '-';
+    if (horario.length === 5 && horario.includes(':')) {
+      return horario;
+    }
+    return horario.slice(0, 5);
+  };
+
+  const getLocalNome = (localId) => {
+    const local = locais.find(l => l.id === localId || l.id === parseInt(localId));
+    return local?.nome || 'Local não especificado';
+  };
+
+  const getDentistaNome = (dentistaId) => {
+    const dentista = dentistas[dentistaId];
+    return dentista?.usuario?.nome || 'Dentista não encontrado';
+  };
+
+  const getServicoNome = (agendamento) => {
+    if (agendamento.servico && typeof agendamento.servico === 'object' && agendamento.servico.nome) {
+      return agendamento.servico.nome;
+    }
+    if (agendamento.procedimento_nome) {
+      return agendamento.procedimento_nome;
+    }
+    return 'Consulta de Rotina';
+  };
+
+  const handleAgendamentoPress = (agendamento) => {
+    navigation.navigate('DetalhesAgendamentoItem', {
+      agendamento,
+      agendamentoId: agendamento.id
+    });
+  };
+
+  const renderAgendamentoCard = ({ item: agendamento }) => {
+    const dataFormatada = formatarData(agendamento.data);
+    const diaSemana = getDiaSemana(agendamento.data);
+    const hora = formatarHorario(agendamento.horario);
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => handleAgendamentoPress(agendamento)}
+        activeOpacity={0.8}
+      >
+        <View style={styles.cardHeader}>
+          <View style={styles.dateBox}>
+            <Text style={styles.dateDay}>{dataFormatada.dia}</Text>
+            <Text style={styles.dateMonth}>{dataFormatada.mes}</Text>
+            <Text style={styles.dateWeekday}>{diaSemana}</Text>
+          </View>
+          <View style={styles.statusBadge}>
+            <Feather name="check-circle" size={14} color="#10B981" />
+            <Text style={styles.statusText}>Confirmado</Text>
+          </View>
+        </View>
+
+        <View style={styles.cardContent}>
+          <View style={styles.infoRow}>
+            <Feather name="clock" size={16} color="#6B7280" />
+            <Text style={styles.infoText}>{hora}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Feather name="map-pin" size={16} color="#6B7280" />
+            <Text style={styles.infoText} numberOfLines={1}>
+              {getLocalNome(agendamento.local)}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Feather name="user" size={16} color="#6B7280" />
+            <Text style={styles.infoText} numberOfLines={1}>
+              Dr(a). {getDentistaNome(agendamento.dentista)}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Feather name="activity" size={16} color="#6B7280" />
+            <Text style={styles.infoText} numberOfLines={1}>
+              {getServicoNome(agendamento)}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Carregando agendamentos...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
-  if (erro) {
+  if (error) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{erro}</Text>
-      </View>
-    );
-  }
-
-  if (!agendamento) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Agendamento não encontrado.</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <Feather name="arrow-left" size={24} color={colors.primary} />
+            </TouchableOpacity>
+            <Text style={styles.title}>Meus Agendamentos</Text>
+          </View>
+          <View style={styles.errorContainer}>
+            <Feather name="alert-circle" size={48} color={colors.error || '#EF4444'} />
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={fetchAgendamentos}
+            >
+              <Text style={styles.retryButtonText}>Tentar Novamente</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Feather name="arrow-left" size={24} color={colors.primary} />
-          </TouchableOpacity>
-          <Text style={styles.title}>Agendamento</Text>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Feather name="arrow-left" size={24} color={colors.primary} />
+        </TouchableOpacity>
+        <Text style={styles.title}>Meus Agendamentos</Text>
+      </View>
+
+      {agendamentos.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Feather name="calendar" size={64} color="#D1D5DB" />
+          <Text style={styles.emptyText}>Nenhum agendamento encontrado</Text>
+          <Text style={styles.emptySubtext}>
+            Você ainda não possui agendamentos realizados
+          </Text>
         </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Informações do Agendamento</Text>
-
-          <View style={styles.infoRow}>
-            <Feather name="calendar" size={16} color={colors.primary} />
-            <Text style={styles.infoText}>Data: {agendamento.data ? formatarData(agendamento.data) : '-'}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Feather name="clock" size={16} color={colors.primary} />
-            <Text style={styles.infoText}>Horário: {agendamento.horario || '-'}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Feather name="tag" size={16} color={colors.primary} />
-            <Text style={styles.infoText}>Serviço: {agendamento.procedimento_nome}</Text>
-          </View>
-
-          <View style={styles.divider} />
-          <Text style={styles.cardTitle}>Informações do Dentista</Text>
-
-          <View style={styles.cardHeader}>
-            <Image
-              source={getAvatarUrl(agendamento.user_avatar) ? { uri: agendamento.user_avatar } : require('../../../assets/avatar.png')}
-              style={styles.avatar}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.dentistName}>Dr(a). {agendamento.dentista_nome}</Text>
-              <Text style={styles.dentistEmail}>{agendamento.dentista_cro}</Text>
-            </View>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Feather name="map-pin" size={16} color={colors.primary} />
-            <Text style={styles.infoText}>
-              Local: {local ? `${local.nome} - ${local.endereco}, ${local.numero}, ${local.cidade}/${local.estado}` : '-'}
-            </Text>
-          </View>
-
-          {local && (
-            <TouchableOpacity
-              style={[styles.verMapaButton]}
-              onPress={() => {
-                const enderecoEncoded = encodeURIComponent(`${local.endereco}, ${local.numero}, ${local.cidade}, ${local.estado}`);
-                Linking.openURL(`https://www.google.com/maps?q=${enderecoEncoded}`);
-              }}
-            >
-              <Text style={styles.verMapaText}>Ver no mapa</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </ScrollView>
+      ) : (
+        <FlatList
+          data={agendamentos}
+          renderItem={renderAgendamentoCard}
+          keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  scrollContent: { flexGrow: 1, padding: spacing.paddingHorizontal, paddingTop: spacing.xxl },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xl },
-  backButton: { marginRight: spacing.md, width: 44, height: 44, borderRadius: 22, backgroundColor: colors.secondary, justifyContent: 'center', alignItems: 'center' },
-  title: { color: colors.primary, fontSize: 28, fontWeight: 'bold' },
-  card: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 18, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 3 },
-  cardTitle: { fontSize: 20, fontWeight: 'bold', color: colors.textPrimary, marginBottom: spacing.md },
-  divider: { borderBottomColor: colors.borderLight, borderBottomWidth: StyleSheet.hairlineWidth, marginVertical: spacing.md },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  avatar: { width: 56, height: 56, borderRadius: 28, marginRight: 14, backgroundColor: '#e6e6e6' },
-  dentistName: { fontSize: 18, fontWeight: 'bold', color: colors.primary },
-  dentistEmail: { fontSize: 15, color: colors.textSecondary, marginTop: 2 },
-  infoRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
-  infoText: { marginLeft: 6, color: colors.textPrimary, fontSize: 15 },
-  errorText: { color: colors.error, textAlign: 'center', fontSize: 16, marginTop: 20 },
-  verMapaButton: { marginTop: 12, backgroundColor: colors.primary, padding: 10, borderRadius: 10, alignItems: 'center' },
-  verMapaText: { color: '#fff', fontWeight: 'bold' },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.paddingHorizontal,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  backButton: {
+    marginRight: spacing.md,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.secondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    flex: 1,
+    color: colors.primary,
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  listContent: {
+    padding: spacing.paddingHorizontal,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xl,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  dateBox: {
+    backgroundColor: '#E0F2FE',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minWidth: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateDay: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0F766E',
+    lineHeight: 28,
+  },
+  dateMonth: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0891B2',
+    marginTop: 2,
+  },
+  dateWeekday: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#0891B2',
+    marginTop: 2,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D1FAE5',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#10B981',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#10B981',
+    marginLeft: 4,
+  },
+  cardContent: {
+    gap: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  loadingText: {
+    marginTop: spacing.md,
+    color: colors.textSecondary,
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+    marginTop: spacing.xxl,
+  },
+  errorText: {
+    marginTop: spacing.md,
+    color: colors.error || '#EF4444',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: 12,
+    marginTop: spacing.md,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+  },
 });
 
 export default DetalhesAgendamento;

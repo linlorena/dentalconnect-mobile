@@ -17,22 +17,7 @@ import { useAuth } from '../../context/auth';
 import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
 
-const dummyAppointment = {
-  id: '1',
-  servico: 'Limpeza e Profilaxia',
-  data: '2025-10-25',
-  horario: '10:00',
-  dentista: {
-    usuario: {
-      nome: 'Ana Silva',
-      email: 'ana.silva@dentalconnect.com',
-      avatar: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-    },
-    numero_cro: 'CRO-SP-54321',
-  },
-};
-
-const { width } = Dimensions.get('window' );
+const { width } = Dimensions.get('window');
 
 const getFirstName = (fullName) => {
   if (!fullName) return 'Usuário';
@@ -95,7 +80,7 @@ const HomeScreen = () => {
 
   const renderTreatmentSlide = ({ item }) => (
     <View style={styles.treatmentSlide}>
-      <View style={[styles.treatmentRow, { marginBottom: 28 }]}> 
+      <View style={[styles.treatmentRow, { marginBottom: 28 }]}>
         <TouchableOpacity style={styles.treatmentCard} activeOpacity={0.7}>
           <View style={[styles.treatmentIcon, { backgroundColor: item[0].color + '15' }]}><MaterialCommunityIcons name={item[0].icon} size={24} color={item[0].color} /></View>
           <Text style={styles.treatmentTitle}>{item[0].title}</Text>
@@ -137,7 +122,7 @@ const HomeScreen = () => {
   const menuItems = [
     { title: "Agendar Avaliação", icon: <Feather name="calendar" size={22} color={colors.primary} />, onPress: () => navigation.navigate('AgendarConsulta') },
     { title: "Buscar Dentistas", icon: <Feather name="search" size={22} color={colors.primary} />, onPress: () => navigation.navigate('BuscarDentista') },
-    { title: "Meus Agendamentos", icon: <Feather name="check-square" size={22} color={colors.primary} />, onPress: () => navigation.navigate('DetalhesAgendamento', { agendamento: dummyAppointment }) },
+    { title: "Meus Agendamentos", icon: <Feather name="check-square" size={22} color={colors.primary} />, onPress: () => navigation.navigate('DetalhesAgendamento') },
     { title: "Procedimentos", icon: <Feather name="clipboard" size={22} color={colors.primary} />, onPress: () => navigation.navigate('Procedimentos') },
     { title: "Configurações", icon: <Feather name="settings" size={22} color={colors.primary} />, onPress: () => navigation.navigate('Configuracoes') },
     { title: "Suporte", icon: <Feather name="headphones" size={22} color={colors.primary} />, onPress: () => navigation.navigate('FaleConosco') },
@@ -211,7 +196,7 @@ const HomeScreen = () => {
           <View style={styles.featuresGrid}>
             <TouchableOpacity style={[styles.featureCard, { backgroundColor: '#0F766E' }]} activeOpacity={0.85} onPress={() => navigation.navigate('AgendarConsulta')}><View style={styles.cardContent}><View style={styles.cardIconWrapper}><View style={styles.cardIcon}><MaterialCommunityIcons name="hospital-building" size={28} color="#FFFFFF" /></View></View><View style={styles.cardTextContainer}><Text style={styles.cardTitle}>Agendar Avaliação</Text><Text style={styles.cardDescription}>Escolha sua cidade e clínica</Text></View><View style={styles.cardArrow}><Feather name="arrow-right" size={18} color="#0F766E" /></View></View></TouchableOpacity>
             <TouchableOpacity style={[styles.featureCard, { backgroundColor: '#7C3AED' }]} activeOpacity={0.85} onPress={() => navigation.navigate('BuscarDentista')}><View style={styles.cardContent}><View style={styles.cardIconWrapper}><View style={styles.cardIcon}><MaterialCommunityIcons name="account-search" size={28} color="#FFFFFF" /></View></View><View style={styles.cardTextContainer}><Text style={styles.cardTitle}>Buscar Dentistas</Text><Text style={styles.cardDescription}>Encontre especialistas</Text></View><View style={styles.cardArrow}><Feather name="arrow-right" size={18} color="#7C3AED" /></View></View></TouchableOpacity>
-            <TouchableOpacity style={[styles.featureCard, { backgroundColor: '#0891B2' }]} activeOpacity={0.85} onPress={() => navigation.navigate('DetalhesAgendamento', { agendamento: dummyAppointment })}><View style={styles.cardContent}><View style={styles.cardIconWrapper}><View style={styles.cardIcon}><MaterialCommunityIcons name="calendar-check" size={28} color="#FFFFFF" /></View></View><View style={styles.cardTextContainer}><Text style={styles.cardTitle}>Meus Agendamentos</Text><Text style={styles.cardDescription}>Veja suas consultas</Text></View><View style={styles.cardArrow}><Feather name="arrow-right" size={18} color="#0891B2" /></View></View></TouchableOpacity>
+            <TouchableOpacity style={[styles.featureCard, { backgroundColor: '#0891B2' }]} activeOpacity={0.85} onPress={() => navigation.navigate('DetalhesAgendamento')}><View style={styles.cardContent}><View style={styles.cardIconWrapper}><View style={styles.cardIcon}><MaterialCommunityIcons name="calendar-check" size={28} color="#FFFFFF" /></View></View><View style={styles.cardTextContainer}><Text style={styles.cardTitle}>Meus Agendamentos</Text><Text style={styles.cardDescription}>Veja suas consultas</Text></View><View style={styles.cardArrow}><Feather name="arrow-right" size={18} color="#0891B2" /></View></View></TouchableOpacity>
             <TouchableOpacity style={[styles.featureCard, { backgroundColor: '#DB2777' }]} activeOpacity={0.85} onPress={() => navigation.navigate('Procedimentos')}><View style={styles.cardContent}><View style={styles.cardIconWrapper}><View style={styles.cardIcon}><MaterialCommunityIcons name="clipboard-text-outline" size={28} color="#FFFFFF" /></View></View><View style={styles.cardTextContainer}><Text style={styles.cardTitle}>Procedimentos</Text><Text style={styles.cardDescription}>Conheça os tratamentos</Text></View><View style={styles.cardArrow}><Feather name="arrow-right" size={18} color="#DB2777" /></View></View></TouchableOpacity>
           </View>
         </Animated.View>
@@ -265,18 +250,18 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#F9FAFB' 
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB'
   },
-  header: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    justifyContent: "space-between", 
-    paddingHorizontal: spacing.paddingHorizontal, 
-    paddingVertical: 16, 
-    backgroundColor: '#FFFFFF', 
-    borderBottomWidth: 1, 
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.paddingHorizontal,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -284,8 +269,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  menuButton: { 
-    padding: 8 
+  menuButton: {
+    padding: 8
   },
   menuIconContainer: {
     width: 40,
@@ -295,41 +280,41 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoContainer: { 
-    flex: 1, 
+  logoContainer: {
+    flex: 1,
     alignItems: "center",
     flexDirection: 'row',
     justifyContent: 'center',
   },
-  logoText: { 
-    fontSize: 20, 
-    fontWeight: "800", 
+  logoText: {
+    fontSize: 20,
+    fontWeight: "800",
     color: colors.primary,
     letterSpacing: -0.5,
   },
-  scrollContent: { 
-    flexGrow: 1, 
-    paddingBottom: 30 
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 30
   },
-  welcomeContainer: { 
-    marginHorizontal: spacing.paddingHorizontal, 
+  welcomeContainer: {
+    marginHorizontal: spacing.paddingHorizontal,
     marginTop: 20,
-    marginBottom: 28, 
-    borderRadius: 28, 
-    overflow: 'hidden', 
-    shadowColor: '#0F766E', 
-    shadowOffset: { width: 0, height: 8 }, 
-    shadowOpacity: 0.2, 
-    shadowRadius: 16, 
-    elevation: 12 
+    marginBottom: 28,
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#0F766E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 12
   },
-  welcomeGradient: { 
-    backgroundColor: colors.primary, 
-    paddingTop: 28, 
-    paddingBottom: 32, 
-    paddingHorizontal: 24, 
-    position: 'relative', 
-    overflow: 'hidden' 
+  welcomeGradient: {
+    backgroundColor: colors.primary,
+    paddingTop: 28,
+    paddingBottom: 32,
+    paddingHorizontal: 24,
+    position: 'relative',
+    overflow: 'hidden'
   },
   decorativeCircle1: {
     position: 'absolute',
@@ -349,112 +334,112 @@ const styles = StyleSheet.create({
     bottom: -20,
     left: -10,
   },
-  welcomeContent: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    zIndex: 2 
+  welcomeContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: 2
   },
-  welcomeTextSection: { 
-    flex: 1 
+  welcomeTextSection: {
+    flex: 1
   },
-  greetingContainer: { 
-    marginBottom: 6 
+  greetingContainer: {
+    marginBottom: 6
   },
-  greeting: { 
-    fontSize: 16, 
-    color: '#FFFFFF', 
+  greeting: {
+    fontSize: 16,
+    color: '#FFFFFF',
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-  userName: { 
-    fontSize: 28, 
-    fontWeight: '800', 
-    color: '#FFFFFF', 
-    marginBottom: 6, 
+  userName: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
     textTransform: 'capitalize',
     letterSpacing: -0.5,
   },
-  subtitle: { 
-    fontSize: 14, 
-    color: 'rgba(255, 255, 255, 0.85)', 
+  subtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.85)',
     marginBottom: 12,
     fontWeight: '500',
   },
-  timeContainer: { 
-    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
-    borderRadius: 16, 
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
+  timeContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
   },
-  timeText: { 
-    fontSize: 13, 
-    color: '#FFFFFF', 
+  timeText: {
+    fontSize: 13,
+    color: '#FFFFFF',
     fontWeight: '700',
     letterSpacing: 0.5,
   },
-  logoContainerAnimated: { 
-    width: 80, 
-    height: 80, 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 40, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 8 }, 
-    shadowOpacity: 0.15, 
-    shadowRadius: 16, 
-    elevation: 10, 
-    position: 'relative' 
+  logoContainerAnimated: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 10,
+    position: 'relative'
   },
-  logoIcon: { 
-    zIndex: 3 
+  logoIcon: {
+    zIndex: 3
   },
-  logoGlow: { 
-    position: 'absolute', 
-    width: 100, 
-    height: 100, 
-    backgroundColor: 'rgba(255, 255, 255, 0.3)', 
-    borderRadius: 50, 
-    zIndex: 1 
+  logoGlow: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 50,
+    zIndex: 1
   },
-  mainFeatures: { 
-    paddingHorizontal: spacing.paddingHorizontal, 
-    marginBottom: 32 
+  mainFeatures: {
+    paddingHorizontal: spacing.paddingHorizontal,
+    marginBottom: 32
   },
-  sectionHeader: { 
-    marginBottom: 20 
+  sectionHeader: {
+    marginBottom: 20
   },
-  sectionTitle: { 
-    fontSize: 24, 
-    fontWeight: '800', 
-    color: '#111827', 
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#111827',
     marginBottom: 10,
     letterSpacing: -0.5,
   },
-  sectionDivider: { 
-    height: 4, 
-    backgroundColor: colors.primary, 
-    borderRadius: 2, 
-    width: 60 
+  sectionDivider: {
+    height: 4,
+    backgroundColor: colors.primary,
+    borderRadius: 2,
+    width: 60
   },
-  featuresGrid: { 
-    flexDirection: 'row', 
-    flexWrap: 'wrap', 
-    justifyContent: 'space-between' 
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between'
   },
-  featureCard: { 
-    width: (width - spacing.paddingHorizontal * 2 - 15) / 2, 
-    borderRadius: 24, 
-    marginBottom: 15, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 6 }, 
-    shadowOpacity: 0.15, 
-    shadowRadius: 12, 
-    elevation: 8, 
+  featureCard: {
+    width: (width - spacing.paddingHorizontal * 2 - 15) / 2,
+    borderRadius: 24,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
     overflow: 'hidden',
     minHeight: 160,
   },
@@ -466,44 +451,44 @@ const styles = StyleSheet.create({
   cardIconWrapper: {
     marginBottom: 12,
   },
-  cardIcon: { 
-    width: 56, 
-    height: 56, 
-    borderRadius: 28, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  cardIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 4 }, 
-    shadowOpacity: 0.1, 
-    shadowRadius: 8, 
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     elevation: 4,
   },
   cardTextContainer: {
     flex: 1,
   },
-  cardTitle: { 
-    fontSize: 16, 
-    fontWeight: '800', 
-    color: '#FFFFFF', 
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
     marginBottom: 6,
     letterSpacing: -0.3,
   },
-  cardDescription: { 
-    fontSize: 12, 
-    color: 'rgba(255, 255, 255, 0.85)', 
+  cardDescription: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.85)',
     lineHeight: 18,
     fontWeight: '500',
   },
-  cardArrow: { 
-    position: 'absolute', 
-    bottom: 16, 
-    right: 16, 
-    width: 32, 
-    height: 32, 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 16, 
-    justifyContent: 'center', 
+  cardArrow: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -511,46 +496,46 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  quickInfo: { 
-    paddingHorizontal: spacing.paddingHorizontal, 
-    marginBottom: 32 
+  quickInfo: {
+    paddingHorizontal: spacing.paddingHorizontal,
+    marginBottom: 32
   },
-  infoCards: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between' 
+  infoCards: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   },
-  infoCard: { 
-    flex: 1, 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 20, 
-    padding: 20, 
-    marginHorizontal: 6, 
-    alignItems: 'center', 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 4 }, 
-    shadowOpacity: 0.08, 
-    shadowRadius: 12, 
+  infoCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginHorizontal: 6,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
     elevation: 6,
   },
-  infoIconContainer: { 
-    width: 48, 
-    height: 48, 
-    borderRadius: 24, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  infoIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 12,
   },
-  infoNumber: { 
-    fontSize: 32, 
-    fontWeight: '900', 
-    color: '#111827', 
+  infoNumber: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#111827',
     marginBottom: 6,
     letterSpacing: -1,
   },
-  infoLabel: { 
-    fontSize: 12, 
-    color: '#6B7280', 
-    textAlign: 'center', 
+  infoLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
     fontWeight: '600',
     lineHeight: 16,
   },
@@ -558,10 +543,10 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     paddingHorizontal: spacing.paddingHorizontal,
   },
-  carouselContainer: { 
-    height: 300 
+  carouselContainer: {
+    height: 300
   },
-  carousel: { 
+  carousel: {
     height: 240,
   },
   treatmentSlide: {
@@ -569,38 +554,38 @@ const styles = StyleSheet.create({
     height: 240,
     paddingVertical: 8,
   },
-  treatmentRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    marginBottom: 20, 
+  treatmentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
     flex: 1
   },
-  treatmentCard: { 
-    width: (width - spacing.paddingHorizontal * 2 - 12) / 2, 
-    height: 110, 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 20, 
-    padding: 16, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 4 }, 
-    shadowOpacity: 0.08, 
-    shadowRadius: 10, 
-    elevation: 5, 
-    alignItems: 'center', 
+  treatmentCard: {
+    width: (width - spacing.paddingHorizontal * 2 - 12) / 2,
+    height: 110,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 5,
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  treatmentIcon: { 
-    width: 44, 
-    height: 44, 
-    borderRadius: 22, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  treatmentIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 8,
   },
-  treatmentTitle: { 
-    fontSize: 13, 
-    fontWeight: '800', 
-    color: '#111827', 
+  treatmentTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#111827',
     textAlign: 'center',
     marginBottom: 4,
     letterSpacing: -0.2,
@@ -613,31 +598,31 @@ const styles = StyleSheet.create({
     lineHeight: 14,
     marginTop: 2,
   },
-  paginationContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    marginTop: 20, 
-    height: 40 
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    height: 40
   },
-  paginationDot: { 
-    width: 8, 
-    height: 8, 
-    borderRadius: 4, 
-    backgroundColor: '#D1D5DB', 
-    marginHorizontal: 4 
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#D1D5DB',
+    marginHorizontal: 4
   },
-  paginationDotActive: { 
-    width: 28, 
-    height: 8, 
-    borderRadius: 4, 
-    backgroundColor: colors.primary 
+  paginationDotActive: {
+    width: 28,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary
   },
-  quickActions: { 
-    backgroundColor: '#FFFFFF', 
-    marginHorizontal: spacing.paddingHorizontal, 
-    borderRadius: 24, 
-    marginTop: 8, 
+  quickActions: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: spacing.paddingHorizontal,
+    borderRadius: 24,
+    marginTop: 8,
     paddingBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -645,35 +630,35 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
   },
-  quickActionsHeader: { 
-    paddingHorizontal: spacing.paddingHorizontal, 
-    paddingTop: 24, 
-    paddingBottom: 20, 
-    alignItems: 'center' 
+  quickActionsHeader: {
+    paddingHorizontal: spacing.paddingHorizontal,
+    paddingTop: 24,
+    paddingBottom: 20,
+    alignItems: 'center'
   },
-  quickActionsTitle: { 
-    fontSize: 20, 
-    fontWeight: '800', 
-    color: '#111827', 
+  quickActionsTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#111827',
     textAlign: 'center',
     letterSpacing: -0.5,
   },
-  quickActionsGrid: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-around', 
-    paddingHorizontal: spacing.paddingHorizontal 
+  quickActionsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: spacing.paddingHorizontal
   },
-  quickActionButton: { 
-    alignItems: 'center', 
-    paddingVertical: 12, 
-    minWidth: 95 
+  quickActionButton: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    minWidth: 95
   },
-  actionIconContainer: { 
-    width: 56, 
-    height: 56, 
-    borderRadius: 28, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  actionIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -681,24 +666,24 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  quickActionText: { 
-    fontSize: 12, 
-    color: '#374151', 
-    fontWeight: '700', 
+  quickActionText: {
+    fontSize: 12,
+    color: '#374151',
+    fontWeight: '700',
     textAlign: 'center',
     letterSpacing: -0.2,
   },
-  modalOverlay: { 
-    flex: 1, 
-    backgroundColor: "rgba(0, 0, 0, 0.6)" 
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.6)"
   },
-  sideMenu: { 
-    position: "absolute", 
-    left: 0, 
-    top: 0, 
-    bottom: 0, 
-    width: width * 0.82, 
-    backgroundColor: '#FFFFFF', 
+  sideMenu: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: width * 0.82,
+    backgroundColor: '#FFFFFF',
     zIndex: 100,
     shadowColor: '#000',
     shadowOffset: { width: 4, height: 0 },
@@ -706,28 +691,28 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 20,
   },
-  menuHeader: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    justifyContent: "space-between", 
-    paddingHorizontal: 24, 
-    paddingTop: 60, 
-    paddingBottom: 24, 
+  menuHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 24,
     backgroundColor: colors.primary,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
   },
-  menuHeaderContent: { 
-    flexDirection: "row", 
-    alignItems: "center" 
+  menuHeaderContent: {
+    flexDirection: "row",
+    alignItems: "center"
   },
-  menuLogoContainer: { 
-    width: 44, 
-    height: 44, 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 22, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  menuLogoContainer: {
+    width: 44,
+    height: 44,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -735,91 +720,91 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  menuTitle: { 
-    fontSize: 22, 
-    fontWeight: "800", 
+  menuTitle: {
+    fontSize: 22,
+    fontWeight: "800",
     color: '#FFFFFF',
     letterSpacing: -0.5,
   },
-  closeButton: { 
+  closeButton: {
     padding: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 20,
   },
-  menuContent: { 
-    flex: 1, 
+  menuContent: {
+    flex: 1,
     paddingTop: 24,
     backgroundColor: '#F9FAFB',
   },
-  menuSection: { 
-    paddingHorizontal: 24, 
+  menuSection: {
+    paddingHorizontal: 24,
     marginBottom: 16,
     backgroundColor: '#FFFFFF',
     paddingVertical: 16,
     marginHorizontal: 12,
     borderRadius: 16,
   },
-  menuSectionTitle: { 
-    fontSize: 12, 
-    fontWeight: "700", 
-    color: '#6B7280', 
-    marginBottom: 16, 
+  menuSectionTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: '#6B7280',
+    marginBottom: 16,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
-  menuItem: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    paddingVertical: 14, 
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
     marginBottom: 4,
     borderRadius: 12,
     paddingHorizontal: 8,
   },
-  menuItemIconContainer: { 
-    width: 44, 
-    height: 44, 
-    backgroundColor: '#F3F4F6', 
-    borderRadius: 22, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  menuItemIconContainer: {
+    width: 44,
+    height: 44,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 14,
   },
-  menuItemText: { 
-    flex: 1, 
-    fontSize: 16, 
-    color: '#111827', 
+  menuItemText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#111827',
     fontWeight: "600",
     letterSpacing: -0.2,
   },
-  menuDivider: { 
-    height: 1, 
-    backgroundColor: '#E5E7EB', 
-    marginHorizontal: 24, 
-    marginVertical: 16 
+  menuDivider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 24,
+    marginVertical: 16
   },
-  menuLogoutItem: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    paddingHorizontal: 24, 
-    paddingVertical: 16, 
-    marginHorizontal: 24, 
-    marginBottom: 24, 
-    borderRadius: 16, 
+  menuLogoutItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    marginHorizontal: 24,
+    marginBottom: 24,
+    borderRadius: 16,
     backgroundColor: '#FEE2E2',
   },
-  menuLogoutIconContainer: { 
-    width: 44, 
-    height: 44, 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 22, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  menuLogoutIconContainer: {
+    width: 44,
+    height: 44,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 14,
   },
-  menuLogoutText: { 
-    flex: 1, 
-    fontSize: 16, 
-    color: '#EF4444', 
+  menuLogoutText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#EF4444',
     fontWeight: "700",
     letterSpacing: -0.2,
   },
