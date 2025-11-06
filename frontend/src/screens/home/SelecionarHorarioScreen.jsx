@@ -163,15 +163,15 @@ const SelecionarHorarioScreen = ({ route }) => {
         setLoading(true);
 
         const dadosAgendamento = {
-            usuario_id: user.id,
-            clinica_id: clinicaId,
-            data_consulta: dataSelecionada, // 'YYYY-MM-DD'
-            hora_consulta: horarioSelecionado, // 'HH:MM'
+            paciente: user.id,
+            local: clinicaId,
+            data: dataSelecionada, // 'YYYY-MM-DD'
+            horario: horarioSelecionado, // 'HH:MM'
             status: 'pendente', 
         };
 
         // Usando API_CONFIG com fallback seguro para a URL
-        const API_URL = `${API_CONFIG?.BASE_URL}${API_CONFIG?.ENDPOINTS?.AGENDAMENTOS || '/agendamentos'}`; 
+        const API_URL = `${API_CONFIG?.BASE_URL}${API_CONFIG?.ENDPOINTS?.AGENDAMENTOS || '/consultation'}`; 
 
         try {
             const response = await fetch(API_URL, {
