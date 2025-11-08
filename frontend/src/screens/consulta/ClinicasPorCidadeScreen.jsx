@@ -58,7 +58,6 @@ const ClinicasPorCidadeScreen = ({ route, navigation }) => {
       }),
     ]).start();
 
-    // Animação de pulso contínua
     const pulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -121,8 +120,64 @@ const ClinicasPorCidadeScreen = ({ route, navigation }) => {
     }, 200);
   };
 
+  const verificarStatusClinica = (local) => {
+    const agora = new Date();
+    const diaSemana = agora.getDay();
+    const horaAtual = agora.getHours();
+    const minutoAtual = agora.getMinutes();
+    const horaAtualDecimal = horaAtual + minutoAtual / 60;
+
+    if (local.horario) {
+      const horarioStr = local.horario.toLowerCase();
+      
+      if (horarioStr.includes('seg') && horarioStr.includes('sex')) {
+        const match = horarioStr.match(/(\d+)h-(\d+)h/);
+        if (match) {
+          const horaAbertura = parseInt(match[1]);
+          const horaFechamento = parseInt(match[2]);
+          
+          if (diaSemana >= 1 && diaSemana <= 5) {
+            if (horaAtualDecimal >= horaAbertura && horaAtualDecimal < horaFechamento) {
+              return { aberto: true, texto: 'Aberto' };
+            } else {
+              return { aberto: false, texto: 'Fechado' };
+            }
+          } else {
+            return { aberto: false, texto: 'Fechado' };
+          }
+        }
+      }
+      
+      const match24h = horarioStr.match(/(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/);
+      if (match24h) {
+        const horaAbertura = parseInt(match24h[1]) + parseInt(match24h[2]) / 60;
+        const horaFechamento = parseInt(match24h[3]) + parseInt(match24h[4]) / 60;
+        
+        if (diaSemana >= 1 && diaSemana <= 5) {
+          if (horaAtualDecimal >= horaAbertura && horaAtualDecimal < horaFechamento) {
+            return { aberto: true, texto: 'Aberto' };
+          } else {
+            return { aberto: false, texto: 'Fechado' };
+          }
+        } else {
+          return { aberto: false, texto: 'Fechado' };
+        }
+      }
+    }
+
+    if (diaSemana >= 1 && diaSemana <= 5) {
+      if (horaAtualDecimal >= 8 && horaAtualDecimal < 18) {
+        return { aberto: true, texto: 'Aberto' };
+      } else {
+        return { aberto: false, texto: 'Fechado' };
+      }
+    } else {
+      return { aberto: false, texto: 'Fechado' };
+    }
+  };
+
   const renderClinica = ({ item, index }) => {
-    const isOpen = Math.random() > 0.3; // Simulação de status aberto/fechado
+    const statusClinica = verificarStatusClinica(item);
     
     return (
       <Animated.View
@@ -155,9 +210,9 @@ const ClinicasPorCidadeScreen = ({ route, navigation }) => {
               <View style={styles.clinicaInfo}>
                 <Text style={styles.clinicaNome}>{item.nome}</Text>
                 <View style={styles.statusContainer}>
-                  <View style={[styles.statusDot, { backgroundColor: isOpen ? colors.success : colors.error }]} />
-                  <Text style={[styles.statusText, { color: isOpen ? colors.success : colors.error }]}>
-                    {isOpen ? 'Aberto' : 'Fechado'}
+                  <View style={[styles.statusDot, { backgroundColor: statusClinica.aberto ? colors.success : (colors.error || '#EF4444') }]} />
+                  <Text style={[styles.statusText, { color: statusClinica.aberto ? colors.success : (colors.error || '#EF4444') }]}>
+                    {statusClinica.texto}
                   </Text>
                 </View>
               </View>

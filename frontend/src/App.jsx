@@ -3,13 +3,11 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useState, useEffect } from 'react';
 import BuscarDentistaScreen from './screens/home/BuscarDentistaScreen';
 import { AuthProvider, useAuth } from './context/auth';
-import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen, ConfiguracoesScreen, AgendarConsultaScreen, DetalhesLocalScreen, ClinicasPorCidadeScreen } from './screens';
+import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen, ConfiguracoesScreen, AgendarConsultaScreen, DetalhesLocalScreen, ClinicasPorCidadeScreen, ProcedimentosScreen, SelecionarHorarioScreen } from './screens';
 import SplashScreen from './screens/SplashScreen';
 import FaleConoscoScreen from './screens/home/FaleConosco';
 import DetalhesAgendamento from './screens/home/DetalhesAgendamento';
 import DetalhesAgendamentoItem from './screens/home/MeusAgendamentos';
-import ProcedimentosScreen from './screens/home/ProcedimentosScreen';
-import SelecionarHorarioScreen from './screens/home/SelecionarHorarioScreen';
 
 const Stack = createStackNavigator();
 
@@ -41,8 +39,8 @@ const AppNavigator = () => {
           <Stack.Screen name="AgendarConsulta" component={AgendarConsultaScreen} options={{ title: 'Agendar Avaliação' }} />
           <Stack.Screen name="DetalhesLocal" component={DetalhesLocalScreen} options={{ title: 'Detalhes da Clínica' }} />
           <Stack.Screen name="ClinicasPorCidade" component={ClinicasPorCidadeScreen} options={{ title: 'Clínicas por Cidade' }} />
-          <Stack.Screen name="Procedimentos" component={ProcedimentosScreen} options={{ title: 'Procedimentos' }} />
-          <Stack.Screen name="SelecionarHorarioScreen" component={SelecionarHorarioScreen} options={{ title: 'SelecionarHorarioScreen' }} />
+          <Stack.Screen name="Procedimentos" component={ProcedimentosScreen} options={{ title: 'Nossos Procedimentos' }} />
+          <Stack.Screen name="SelecionarHorario" component={SelecionarHorarioScreen} options={{ title: 'Agendar Consulta' }} />
         </>
       ) : (
         <>
