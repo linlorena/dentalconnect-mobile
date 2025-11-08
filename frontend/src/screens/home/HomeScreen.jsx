@@ -190,8 +190,8 @@ const HomeScreen = ({ navigation }) => {
       title: "Procedimentos", 
       icon: <Feather name="activity" size={22} color={colors.primary} />, 
       onPress: () => {
-        console.log('Procedimentos');
         setMenuVisible(false);
+        navigation.navigate('Procedimentos');
       } 
     },
     { 
