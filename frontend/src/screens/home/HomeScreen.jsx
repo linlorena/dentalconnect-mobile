@@ -84,8 +84,8 @@ const HomeScreen = () => {
       title: "Meus Agendamentos", 
       icon: <Feather name="calendar" size={22} color={colors.primary} />, 
       onPress: () => {
-        console.log('Meus Agendamentos');
         setMenuVisible(false);
+        navigation.navigate('DetalhesAgendamento');
       } 
     },
     { 
@@ -223,7 +223,11 @@ const HomeScreen = () => {
                   </View>
                 </View>
               </TouchableOpacity>
-            <TouchableOpacity style={[styles.featureCard, styles.tertiaryCard]} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={[styles.featureCard, styles.tertiaryCard]} 
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('DetalhesAgendamento')}
+            >
               <View style={styles.cardGradient}>
                 <View style={styles.cardIcon}>
                   <MaterialCommunityIcons name="calendar-check" size={28} color={colors.primary} />
