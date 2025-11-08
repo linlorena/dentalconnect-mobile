@@ -188,7 +188,7 @@ const HomeScreen = () => {
               <View style={styles.cardGradient}>
                 <View style={styles.cardGlassEffect} />
                 <View style={styles.cardIcon}>
-                  <Text style={styles.cardEmoji}>🏥</Text>
+                  <MaterialCommunityIcons name="hospital-building" size={28} color={colors.primary} />
                   <View style={styles.cardIconGlow} />
                 </View>
                 <Text style={styles.cardTitle}>Agendar Consulta</Text>
@@ -211,7 +211,7 @@ const HomeScreen = () => {
               >
                 <View style={styles.cardGradient}>
                   <View style={styles.cardIcon}>
-                    <Text style={styles.cardEmoji}>👨‍⚕️</Text>
+                    <MaterialCommunityIcons name="account-search" size={28} color={colors.primary} />
                   </View>
                   <Text style={styles.cardTitle}>Buscar Dentistas</Text>
                   <Text style={styles.cardDescription}>Encontre especialistas próximos</Text>
@@ -226,7 +226,7 @@ const HomeScreen = () => {
             <TouchableOpacity style={[styles.featureCard, styles.tertiaryCard]} activeOpacity={0.8}>
               <View style={styles.cardGradient}>
                 <View style={styles.cardIcon}>
-                  <Text style={styles.cardEmoji}>📅</Text>
+                  <MaterialCommunityIcons name="calendar-check" size={28} color={colors.primary} />
                 </View>
                 <Text style={styles.cardTitle}>Meus Agendamentos</Text>
                 <Text style={styles.cardDescription}>Veja suas consultas marcadas</Text>
@@ -243,7 +243,7 @@ const HomeScreen = () => {
             >
               <View style={styles.cardGradient}>
                 <View style={styles.cardIcon}>
-                  <Text style={styles.cardEmoji}>🦷</Text>
+                  <MaterialCommunityIcons name="clipboard-text-outline" size={28} color={colors.primary} />
                 </View>
                 <Text style={styles.cardTitle}>Procedimentos</Text>
                 <Text style={styles.cardDescription}>Conheça nossos procedimentos</Text>
@@ -336,10 +336,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoText: {
-    fontSize: 20,
-    fontWeight: "800",
+    fontSize: 19,
+    fontWeight: "700",
     color: colors.primary,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   scrollContent: {
     flexGrow: 1,
@@ -396,24 +396,25 @@ const styles = StyleSheet.create({
     marginBottom: 6
   },
   greeting: {
-    fontSize: 16,
-    color: '#FFFFFF',
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.95)',
     fontWeight: '600',
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   userName: {
-    fontSize: 28,
-    fontWeight: '800',
+    fontSize: 26,
+    fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 6,
+    marginBottom: 4,
     textTransform: 'capitalize',
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.85)',
-    marginBottom: 12,
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 10,
     fontWeight: '500',
+    letterSpacing: 0.1,
   },
   timeContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -463,11 +464,11 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#111827',
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.textPrimary,
     marginBottom: 10,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   sectionDivider: {
     height: 4,
@@ -500,34 +501,8 @@ const styles = StyleSheet.create({
   cardIconWrapper: {
     marginBottom: 12,
   },
-  cardIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
   cardTextContainer: {
     flex: 1,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 6,
-    letterSpacing: -0.3,
-  },
-  cardDescription: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.85)',
-    lineHeight: 18,
-    fontWeight: '500',
   },
   cardArrow: {
     position: 'absolute',
@@ -535,7 +510,7 @@ const styles = StyleSheet.create({
     right: 16,
     width: 32,
     height: 32,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(15, 118, 110, 0.15)',
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
@@ -544,6 +519,93 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  arrowText: {
+    fontSize: 18,
+    color: colors.primary,
+    fontWeight: '800',
+  },
+  primaryCard: {
+    backgroundColor: '#E0F2F1',
+  },
+  secondaryCard: {
+    backgroundColor: '#E3F2FD',
+  },
+  tertiaryCard: {
+    backgroundColor: '#E0F7FA',
+  },
+  quaternaryCard: {
+    backgroundColor: '#F3E5F5',
+  },
+  cardGradient: {
+    flex: 1,
+    padding: 20,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  cardGlassEffect: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(15, 118, 110, 0.08)',
+  },
+  cardIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    backgroundColor: 'rgba(15, 118, 110, 0.15)',
+  },
+  cardIconGlow: {
+    position: 'absolute',
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: 'rgba(15, 118, 110, 0.08)',
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 6,
+    letterSpacing: -0.2,
+  },
+  cardDescription: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 18,
+    fontWeight: '500',
+    marginBottom: 12,
+    letterSpacing: 0.1,
+  },
+  cardBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(15, 118, 110, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  badgeText: {
+    fontSize: 10,
+    color: colors.primary,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  cardShine: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+    backgroundColor: 'rgba(15, 118, 110, 0.05)',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   quickInfo: {
     paddingHorizontal: spacing.paddingHorizontal,
@@ -575,20 +637,20 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   infoNumber: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#111827',
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.textPrimary,
     marginBottom: 6,
-    letterSpacing: -1,
+    letterSpacing: -0.5,
   },
   infoLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: colors.textSecondary,
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 16,
+    letterSpacing: 0.1,
   },
-<<<<<<< HEAD
   infoProgress: {
     width: '100%',
     alignItems: 'center',
@@ -626,11 +688,11 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   quickActionsTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#111827',
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
     textAlign: 'center',
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   quickActionsGrid: {
     flexDirection: 'row',
@@ -657,10 +719,10 @@ const styles = StyleSheet.create({
   },
   quickActionText: {
     fontSize: 12,
-    color: '#374151',
-    fontWeight: '700',
+    color: colors.textPrimary,
+    fontWeight: '600',
     textAlign: 'center',
-    letterSpacing: -0.2,
+    letterSpacing: 0.1,
   },
   modalOverlay: {
     flex: 1,
@@ -710,10 +772,10 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   menuTitle: {
-    fontSize: 22,
-    fontWeight: "800",
+    fontSize: 20,
+    fontWeight: "700",
     color: '#FFFFFF',
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   closeButton: {
     padding: 8,
@@ -734,12 +796,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   menuSectionTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: '#6B7280',
+    fontSize: 11,
+    fontWeight: "600",
+    color: colors.textSecondary,
     marginBottom: 16,
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 0.8,
   },
   menuItem: {
     flexDirection: "row",
@@ -760,10 +822,10 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     flex: 1,
-    fontSize: 16,
-    color: '#111827',
-    fontWeight: "600",
-    letterSpacing: -0.2,
+    fontSize: 15,
+    color: colors.textPrimary,
+    fontWeight: "500",
+    letterSpacing: 0.1,
   },
   menuDivider: {
     height: 1,
@@ -792,10 +854,10 @@ const styles = StyleSheet.create({
   },
   menuLogoutText: {
     flex: 1,
-    fontSize: 16,
-    color: '#EF4444',
-    fontWeight: "700",
-    letterSpacing: -0.2,
+    fontSize: 15,
+    color: colors.error,
+    fontWeight: "600",
+    letterSpacing: 0.1,
   },
 });
 
