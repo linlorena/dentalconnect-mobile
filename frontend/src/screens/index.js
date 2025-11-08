@@ -8,3 +8,4 @@ export { default as ProcedimentosScreen } from './home/ProcedimentosScreen';
 export { default as AgendarConsultaScreen } from './consulta/AgendarConsultaScreen';
 export { default as DetalhesLocalScreen } from './consulta/DetalhesLocalScreen';
 export { default as ClinicasPorCidadeScreen } from './consulta/ClinicasPorCidadeScreen';
+export { default as SelecionarHorarioScreen } from './consulta/SelecionarHorarioScreen';

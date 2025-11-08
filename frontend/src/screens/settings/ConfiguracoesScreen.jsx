@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,22 +13,22 @@ import {
   StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialIcons, Feather, Ionicons } from '@expo/vector-icons';
+import API_CONFIG from '../../config/api';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/auth';
-import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import PasswordInput from '../../components/common/PasswordInput';
 import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
 
-const { width, height } = Dimensions.get('window');
+const {height } = Dimensions.get('window');
 
 const ConfiguracoesScreen = ({ navigation }) => {
   const { user, signOut } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalType, setModalType] = useState(''); // 'nome', 'email', 'senha', 'faq'
-  
-  // Estados para edição
+  const [modalType, setModalType] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
+
   const [nome, setNome] = useState(user?.nome || '');
   const [email, setEmail] = useState(user?.email || '');
   const [senhaAtual, setSenhaAtual] = useState('');
@@ -36,7 +36,6 @@ const ConfiguracoesScreen = ({ navigation }) => {
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Animações
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -44,7 +43,6 @@ const ConfiguracoesScreen = ({ navigation }) => {
   const modalOpacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Animação de entrada
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -64,6 +62,11 @@ const ConfiguracoesScreen = ({ navigation }) => {
       }),
     ]).start();
   }, []);
+
+  useEffect(() => {
+    setNome(user?.nome || '');
+    setEmail(user?.email || '');
+  }, [user]);
 
   useEffect(() => {
     if (modalVisible) {
@@ -96,7 +99,6 @@ const ConfiguracoesScreen = ({ navigation }) => {
     }
   }, [modalVisible]);
 
-  // Funções utilitárias inline
   const isValidEmail = (email) => {
     if (!email) return false;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -123,40 +125,104 @@ const ConfiguracoesScreen = ({ navigation }) => {
 
   const handleUpdateNome = async () => {
     if (!nome.trim()) {
-      Alert.alert('Erro', 'Nome não pode estar vazio');
+      Alert.alert("Erro", "Nome não pode estar vazio");
       return;
     }
 
     setLoading(true);
     try {
-      // Simular atualização - implementar quando backend tiver essa rota
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USERS}/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nome: nome.trim() }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Falha ao atualizar nome');
+      }
+
+      const freshDataResponse = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USERS}/${user.id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      if (freshDataResponse.ok) {
+        const freshUserData = await freshDataResponse.json();
+        if (user.updateUserData) {
+          user.updateUserData(freshUserData);
+        }
+      } else {
+        if (user.updateUserData) {
+          user.updateUserData({ nome: nome.trim() });
+        }
+        console.warn("Falha ao buscar dados frescos do usuário após atualização de nome.");
+      }
       
-      Alert.alert('Sucesso', 'Nome atualizado com sucesso!');
+      Alert.alert("Sucesso", "Nome atualizado com sucesso!");
       closeModal();
+      setRefreshKey(prev => prev + 1);
+      setLoading(false);
     } catch (error) {
-      Alert.alert('Erro', 'Falha ao atualizar nome');
-    } finally {
+      console.error("Erro ao atualizar nome:", error.message);
+      Alert.alert("Erro", error.message || "Falha ao atualizar nome. Verifique o console para mais detalhes.");
       setLoading(false);
     }
   };
 
   const handleUpdateEmail = async () => {
     if (!isValidEmail(email)) {
-      Alert.alert('Erro', 'Email inválido');
+      Alert.alert("Erro", "Email inválido");
       return;
     }
 
     setLoading(true);
     try {
-      // Simular atualização - implementar quando backend tiver essa rota
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USERS}/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: normalizeEmail(email) }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Falha ao atualizar email');
+      }
+
+      const freshDataResponse = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USERS}/${user.id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      if (freshDataResponse.ok) {
+        const freshUserData = await freshDataResponse.json();
+        if (user.updateUserData) {
+          user.updateUserData(freshUserData);
+        }
+      } else {
+        if (user.updateUserData) {
+          user.updateUserData({ email: normalizeEmail(email) });
+        }
+        console.warn("Falha ao buscar dados frescos do usuário após atualização de email.");
+      }
       
-      Alert.alert('Sucesso', 'Email atualizado com sucesso!');
+      Alert.alert("Sucesso", "Email atualizado com sucesso!");
       closeModal();
+      setRefreshKey(prev => prev + 1);
+      setLoading(false);
     } catch (error) {
-      Alert.alert('Erro', 'Falha ao atualizar email');
-    } finally {
+      console.error("Erro ao atualizar email:", error.message);
+      Alert.alert("Erro", error.message || "Falha ao atualizar email. Verifique o console para mais detalhes.");
       setLoading(false);
     }
   };
@@ -179,14 +245,46 @@ const ConfiguracoesScreen = ({ navigation }) => {
 
     setLoading(true);
     try {
-      // Simular atualização - implementar quando backend tiver essa rota
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USERS}/${user.id}/password`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          currentPassword: senhaAtual,
+          newPassword: novaSenha
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Falha ao atualizar senha');
+      }
+
+      const freshDataResponse = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USERS}/${user.id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      if (freshDataResponse.ok) {
+        const freshUserData = await freshDataResponse.json();
+        if (user.updateUserData) {
+          user.updateUserData(freshUserData);
+        }
+      } else {
+        console.warn("Falha ao buscar dados frescos do usuário após atualização de senha.");
+      }
       
       Alert.alert('Sucesso', 'Senha atualizada com sucesso!');
       closeModal();
+      setRefreshKey(prev => prev + 1);
+      setLoading(false);
     } catch (error) {
-      Alert.alert('Erro', 'Falha ao atualizar senha');
-    } finally {
+      console.error("Erro ao atualizar senha:", error.message);
+      Alert.alert('Erro', error.message || 'Falha ao atualizar senha. Verifique o console para mais detalhes.');
       setLoading(false);
     }
   };
@@ -403,10 +501,9 @@ const ConfiguracoesScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} key={refreshKey}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
       
-      {/* Header com Gradiente */}
       <LinearGradient
         colors={[colors.primary, colors.primaryLight]}
         style={styles.headerGradient}
@@ -430,18 +527,8 @@ const ConfiguracoesScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         <Animated.View 
-          style={[
-            styles.content,
-            {
-              opacity: fadeAnim,
-              transform: [
-                { translateY: slideAnim },
-                { scale: scaleAnim }
-              ]
-            }
-          ]}
+          style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale: scaleAnim }] }]}
         >
-          {/* Card de Perfil */}
           <Animated.View style={styles.profileCard}>
             <View style={styles.profileHeader}>
               <View style={styles.avatarContainer}>
@@ -457,14 +544,13 @@ const ConfiguracoesScreen = ({ navigation }) => {
                 <Text style={styles.profileEmail}>{user?.email || 'email@exemplo.com'}</Text>
                 <View style={styles.userTypeBadge}>
                   <Text style={styles.userTypeText}>
-                    {user?.tipo === 'dentista' ? '👨‍⚕️ Dentista' : '👤 Paciente'}
+                    {user?.tipo === 'dentista' ? 'Dentista' : 'Paciente'}
                   </Text>
                 </View>
               </View>
             </View>
           </Animated.View>
 
-          {/* Seção de Informações Pessoais */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons name="person" size={24} color={colors.primary} />
@@ -519,7 +605,6 @@ const ConfiguracoesScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* Seção de Ajuda e Suporte */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons name="help-outline" size={24} color={colors.primary} />
@@ -572,7 +657,6 @@ const ConfiguracoesScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* Seção de Conta */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons name="account-circle" size={24} color={colors.primary} />
@@ -593,7 +677,6 @@ const ConfiguracoesScreen = ({ navigation }) => {
         </Animated.View>
       </ScrollView>
 
-      {/* Modal Moderno */}
       <Modal
         animationType="none"
         transparent={true}
@@ -601,10 +684,7 @@ const ConfiguracoesScreen = ({ navigation }) => {
         onRequestClose={closeModal}
       >
         <Animated.View 
-          style={[
-            styles.modalOverlay,
-            { opacity: modalOpacityAnim }
-          ]}
+          style={[styles.modalOverlay, { opacity: modalOpacityAnim }]}
         >
           <TouchableOpacity 
             style={styles.modalBackground} 
@@ -612,13 +692,7 @@ const ConfiguracoesScreen = ({ navigation }) => {
             onPress={closeModal}
           />
           <Animated.View 
-            style={[
-              styles.modalContainer,
-              { 
-                transform: [{ scale: modalScaleAnim }],
-                opacity: modalOpacityAnim
-              }
-            ]}
+            style={[styles.modalContainer, { transform: [{ scale: modalScaleAnim }], opacity: modalOpacityAnim }]}
           >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
@@ -680,8 +754,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.paddingHorizontal,
     paddingTop: spacing.lg,
   },
-  
-  // Card de Perfil
   profileCard: {
     backgroundColor: 'white',
     borderRadius: 20,
@@ -756,8 +828,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-
-  // Seções
   section: {
     marginBottom: spacing.xl,
   },
@@ -817,8 +887,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontStyle: 'italic',
   },
-
-  // Botão de Logout
   logoutButton: {
     backgroundColor: colors.error,
     borderRadius: 16,
@@ -840,8 +908,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -946,8 +1012,6 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.6,
   },
-
-  // FAQ
   faqContent: {
     padding: spacing.lg,
   },

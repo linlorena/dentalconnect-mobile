@@ -217,7 +217,7 @@ const AgendarConsultaScreen = ({ navigation }) => {
             >
               <Ionicons name="calendar" size={32} color={colors.white} />
             </Animated.View>
-            <Text style={styles.headerTitle}>Agendar Consulta</Text>
+            <Text style={styles.headerTitle}>Agendar Avaliação</Text>
             <Text style={styles.headerSubtitle}>
               Encontre clínicas próximas a você
             </Text>
