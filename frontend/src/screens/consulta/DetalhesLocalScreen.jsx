@@ -23,11 +23,68 @@ const { width, height } = Dimensions.get('window');
 const DetalhesLocalScreen = ({ route, navigation }) => {
   const { local } = route.params;
   
-  // Animações
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  const verificarStatusClinica = () => {
+    const agora = new Date();
+    const diaSemana = agora.getDay();
+    const horaAtual = agora.getHours();
+    const minutoAtual = agora.getMinutes();
+    const horaAtualDecimal = horaAtual + minutoAtual / 60;
+
+    if (local.horario) {
+      const horarioStr = local.horario.toLowerCase();
+      
+      if (horarioStr.includes('seg') && horarioStr.includes('sex')) {
+        const match = horarioStr.match(/(\d+)h-(\d+)h/);
+        if (match) {
+          const horaAbertura = parseInt(match[1]);
+          const horaFechamento = parseInt(match[2]);
+          
+          if (diaSemana >= 1 && diaSemana <= 5) {
+            if (horaAtualDecimal >= horaAbertura && horaAtualDecimal < horaFechamento) {
+              return { aberto: true, texto: 'Aberto agora' };
+            } else {
+              return { aberto: false, texto: 'Fechado agora' };
+            }
+          } else {
+            return { aberto: false, texto: 'Fechado agora' };
+          }
+        }
+      }
+      
+      const match24h = horarioStr.match(/(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/);
+      if (match24h) {
+        const horaAbertura = parseInt(match24h[1]) + parseInt(match24h[2]) / 60;
+        const horaFechamento = parseInt(match24h[3]) + parseInt(match24h[4]) / 60;
+        
+        if (diaSemana >= 1 && diaSemana <= 5) {
+          if (horaAtualDecimal >= horaAbertura && horaAtualDecimal < horaFechamento) {
+            return { aberto: true, texto: 'Aberto agora' };
+          } else {
+            return { aberto: false, texto: 'Fechado agora' };
+          }
+        } else {
+          return { aberto: false, texto: 'Fechado agora' };
+        }
+      }
+    }
+
+    if (diaSemana >= 1 && diaSemana <= 5) {
+      if (horaAtualDecimal >= 8 && horaAtualDecimal < 18) {
+        return { aberto: true, texto: 'Aberto agora' };
+      } else {
+        return { aberto: false, texto: 'Fechado agora' };
+      }
+    } else {
+      return { aberto: false, texto: 'Fechado agora' };
+    }
+  };
+
+  const statusClinica = verificarStatusClinica();
 
   useEffect(() => {
     iniciarAnimacoes();
@@ -53,7 +110,6 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
       }),
     ]).start();
 
-    // Animação de pulso contínua
     const pulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -71,8 +127,7 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
     pulseAnimation.start();
   };
 
-  const handleAgendarConsulta = async () => {
-    // Animação de feedback
+  const handleAgendarConsulta = () => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
         toValue: 0.95,
@@ -86,7 +141,10 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
       }),
     ]).start();
 
-    // Por enquanto, não faz nada - apenas animação visual
+    navigation.navigate('SelecionarHorario', {
+      clinicaId: local.id,
+      nomeDaClinica: local.nome,
+    });
   };
 
   const handleCall = () => {
@@ -223,8 +281,16 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
             >
               <View style={styles.mainHeader}>
                 <View style={styles.statusContainer}>
-                  <View style={styles.statusDot} />
-                  <Text style={styles.statusText}>Aberto agora</Text>
+                  <View style={[
+                    styles.statusDot, 
+                    !statusClinica.aberto && styles.statusDotFechado
+                  ]} />
+                  <Text style={[
+                    styles.statusText,
+                    !statusClinica.aberto && styles.statusTextFechado
+                  ]}>
+                    {statusClinica.texto}
+                  </Text>
                 </View>
                 <View style={styles.ratingContainer}>
                   <Ionicons name="star" size={16} color="#FFD700" />
@@ -428,10 +494,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success,
     marginRight: spacing.xs,
   },
+  statusDotFechado: {
+    backgroundColor: colors.error || '#EF4444',
+  },
   statusText: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.success,
+  },
+  statusTextFechado: {
+    color: colors.error || '#EF4444',
   },
   ratingContainer: {
     flexDirection: 'row',

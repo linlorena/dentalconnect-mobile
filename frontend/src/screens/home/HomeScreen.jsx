@@ -26,8 +26,6 @@ const HomeScreen = ({ navigation }) => {
   const [slideAnim] = useState(new Animated.Value(50));
   const [scaleAnim] = useState(new Animated.Value(0.8));
   const [rotateAnim] = useState(new Animated.Value(0));
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const flatListRef = useRef(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuSlideAnim] = useState(new Animated.Value(-width * 0.8));
 
@@ -72,86 +70,6 @@ const HomeScreen = ({ navigation }) => {
     return 'Boa noite';
   };
 
-  // Dados dos tratamentos organizados em slides
-  const treatmentsData = [
-    [
-      { id: 1, emoji: '🧽', title: 'Limpeza Dental', description: 'Profilaxia e remoção de tártaro' },
-      { id: 2, emoji: '🔧', title: 'Restauração', description: 'Correção de cáries e fraturas' },
-      { id: 3, emoji: '🔬', title: 'Canal', description: 'Tratamento endodôntico' },
-      { id: 4, emoji: '⚙️', title: 'Implante', description: 'Reabilitação oral' },
-    ],
-    [
-      { id: 5, emoji: '🦷', title: 'Ortodontia', description: 'Aparelhos ortodônticos' },
-      { id: 6, emoji: '👑', title: 'Prótese', description: 'Coroas e pontes' },
-      { id: 7, emoji: '✨', title: 'Clareamento', description: 'Clareamento dental' },
-      { id: 8, emoji: '🏥', title: 'Cirurgia', description: 'Extração e cirurgias' },
-    ],
-    [
-      { id: 9, emoji: '🦷', title: 'Periodontia', description: 'Tratamento gengival' },
-      { id: 10, emoji: '👶', title: 'Odontopediatria', description: 'Cuidados infantis' },
-      { id: 11, emoji: '🦷', title: 'Estética', description: 'Procedimentos estéticos' },
-      { id: 12, emoji: '🦷', title: 'Emergência', description: 'Atendimento urgente' },
-    ],
-  ];
-
-  const renderTreatmentSlide = ({ item }) => (
-    <View style={styles.treatmentSlide}>
-      <View style={styles.treatmentRow}>
-        <View style={styles.treatmentCard}>
-          <View style={styles.treatmentIcon}>
-            <Text style={styles.treatmentEmoji}>{item[0].emoji}</Text>
-          </View>
-          <Text style={styles.treatmentTitle}>{item[0].title}</Text>
-          <Text style={styles.treatmentDescription}>{item[0].description}</Text>
-        </View>
-
-        <View style={styles.treatmentCard}>
-          <View style={styles.treatmentIcon}>
-            <Text style={styles.treatmentEmoji}>{item[1].emoji}</Text>
-          </View>
-          <Text style={styles.treatmentTitle}>{item[1].title}</Text>
-          <Text style={styles.treatmentDescription}>{item[1].description}</Text>
-        </View>
-      </View>
-
-      <View style={styles.treatmentRow}>
-        <View style={styles.treatmentCard}>
-          <View style={styles.treatmentIcon}>
-            <Text style={styles.treatmentEmoji}>{item[2].emoji}</Text>
-          </View>
-          <Text style={styles.treatmentTitle}>{item[2].title}</Text>
-          <Text style={styles.treatmentDescription}>{item[2].description}</Text>
-        </View>
-
-        <View style={styles.treatmentCard}>
-          <View style={styles.treatmentIcon}>
-            <Text style={styles.treatmentEmoji}>{item[3].emoji}</Text>
-          </View>
-          <Text style={styles.treatmentTitle}>{item[3].title}</Text>
-          <Text style={styles.treatmentDescription}>{item[3].description}</Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderPaginationDots = () => (
-    <View style={styles.paginationContainer}>
-      {treatmentsData.map((_, index) => (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.paginationDot,
-            currentSlide === index && styles.paginationDotActive
-          ]}
-          onPress={() => {
-            setCurrentSlide(index);
-            flatListRef.current?.scrollToIndex({ index, animated: true });
-          }}
-        />
-      ))}
-    </View>
-  );
-
   const handleLogout = async () => {
     try {
       await signOut()
@@ -190,8 +108,8 @@ const HomeScreen = ({ navigation }) => {
       title: "Procedimentos", 
       icon: <Feather name="activity" size={22} color={colors.primary} />, 
       onPress: () => {
-        console.log('Procedimentos');
         setMenuVisible(false);
+        navigation.navigate('Procedimentos');
       } 
     },
     { 
@@ -362,13 +280,14 @@ const HomeScreen = ({ navigation }) => {
             <TouchableOpacity 
               style={[styles.featureCard, styles.quaternaryCard]} 
               activeOpacity={0.8}
+              onPress={() => navigation.navigate('Procedimentos')}
             >
               <View style={styles.cardGradient}>
                 <View style={styles.cardIcon}>
                   <Text style={styles.cardEmoji}>🦷</Text>
                 </View>
                 <Text style={styles.cardTitle}>Procedimentos</Text>
-                <Text style={styles.cardDescription}>Conheça nossos tratamentos</Text>
+                <Text style={styles.cardDescription}>Conheça nossos procedimentos</Text>
                 <View style={styles.cardArrow}>
                   <Text style={styles.arrowText}>→</Text>
                 </View>
@@ -412,34 +331,6 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </View>
         </Animated.View>
-
-        {/* Seção de tratamentos com carrossel */}
-        <Animated.View style={[styles.treatmentsSection, { opacity: fadeAnim }]}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Conheça nossos tratamentos</Text>
-            <View style={styles.sectionDivider} />
-          </View>
-          
-          <View style={styles.carouselContainer}>
-            <FlatList
-              ref={flatListRef}
-              data={treatmentsData}
-              renderItem={renderTreatmentSlide}
-              keyExtractor={(item, index) => index.toString()}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={(event) => {
-                const slideIndex = Math.round(event.nativeEvent.contentOffset.x / width);
-                setCurrentSlide(slideIndex);
-              }}
-              style={styles.carousel}
-            />
-            
-            {renderPaginationDots()}
-          </View>
-        </Animated.View>
-
 
         {/* Ações rápidas modernas */}
         <Animated.View style={[styles.quickActions, { opacity: fadeAnim }]}>
@@ -998,99 +889,6 @@ const styles = StyleSheet.create({
     width: '30%',
     backgroundColor: colors.primary,
     borderRadius: 2,
-  },
-  
-  // Treatments section styles
-  treatmentsSection: {
-    paddingHorizontal: spacing.paddingHorizontal,
-    marginBottom: 40,
-  },
-  carouselContainer: {
-    height: 280,
-  },
-  carousel: {
-    height: 200,
-  },
-  treatmentSlide: {
-    width: width - spacing.paddingHorizontal * 2,
-    paddingHorizontal: 0,
-    height: 200,
-  },
-  treatmentRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-    flex: 1,
-  },
-  treatmentCard: {
-    width: (width - spacing.paddingHorizontal * 2 - 20) / 2,
-    height: 90,
-    backgroundColor: colors.background,
-    borderRadius: 24,
-    padding: 14,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  treatmentIcon: {
-    width: 40,
-    height: 40,
-    backgroundColor: colors.secondary,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 6,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  treatmentEmoji: {
-    fontSize: 18,
-  },
-  treatmentTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 2,
-    textAlign: 'center',
-  },
-  treatmentDescription: {
-    fontSize: 9,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 12,
-    fontWeight: '500',
-  },
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 16,
-    paddingVertical: 8,
-    height: 40,
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.borderLight,
-    marginHorizontal: 4,
-  },
-  paginationDotActive: {
-    width: 24,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.primary,
   },
   
   // Quick actions styles

@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useState, useEffect } from 'react';
 import BuscarDentistaScreen from './screens/home/BuscarDentistaScreen';
 import { AuthProvider, useAuth } from './context/auth';
-import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen, ConfiguracoesScreen, AgendarConsultaScreen, DetalhesLocalScreen, ClinicasPorCidadeScreen } from './screens';
+import { LoginScreen, CadastroScreen, EsqueciSenhaScreen, HomeScreen, ConfiguracoesScreen, AgendarConsultaScreen, DetalhesLocalScreen, ClinicasPorCidadeScreen, ProcedimentosScreen, SelecionarHorarioScreen } from './screens';
 import SplashScreen from './screens/SplashScreen';
 
 const Stack = createStackNavigator();
@@ -33,6 +33,8 @@ const AppNavigator = () => {
           <Stack.Screen name="AgendarConsulta" component={AgendarConsultaScreen} options={{ title: 'Agendar Consulta' }} />
           <Stack.Screen name="DetalhesLocal" component={DetalhesLocalScreen} options={{ title: 'Detalhes da Clínica' }} />
           <Stack.Screen name="ClinicasPorCidade" component={ClinicasPorCidadeScreen} options={{ title: 'Clínicas por Cidade' }} />
+          <Stack.Screen name="Procedimentos" component={ProcedimentosScreen} options={{ title: 'Nossos Procedimentos' }} />
+          <Stack.Screen name="SelecionarHorario" component={SelecionarHorarioScreen} options={{ title: 'Agendar Consulta' }} />
         </>
       ) : (
         <>
