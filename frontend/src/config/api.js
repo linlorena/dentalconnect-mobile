@@ -24,8 +24,8 @@ const getBaseURL = () => {
   // Fallbacks caso não seja possível detectar (ex.: build standalone)
   const fallbacks = [
     'http://localhost:3001/api',
-    'http://192.168.0.10:3001/api',
-    'http://192.168.0.92:3001/api'
+    'http://192.168.1.5:3001/api',
+    'http://192.168.1.5:3001/api'
   ];
   return fallbacks[0];
 };

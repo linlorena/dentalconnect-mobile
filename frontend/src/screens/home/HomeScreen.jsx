@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -10,16 +11,21 @@ import {
   Animated,
   StatusBar,
   FlatList,
-  Modal,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/auth';
 import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
-const HomeScreen = ({ navigation }) => {
+const getFirstName = (fullName) => {
+  if (!fullName) return 'Usuário';
+  return fullName.split(' ')[0];
+};
+
+const HomeScreen = () => {
+  const navigation = useNavigation();
   const { user, signOut } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -27,27 +33,14 @@ const HomeScreen = ({ navigation }) => {
   const [scaleAnim] = useState(new Animated.Value(0.8));
   const [rotateAnim] = useState(new Animated.Value(0));
   const [menuVisible, setMenuVisible] = useState(false);
-  const [menuSlideAnim] = useState(new Animated.Value(-width * 0.8));
+
+  const menuAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Animação de entrada mais sofisticada
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 8,
-        useNativeDriver: true,
-      }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 1000, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, tension: 50, friction: 8, useNativeDriver: true }),
       Animated.timing(rotateAnim, {
         toValue: 1,
         duration: 1200,
@@ -55,11 +48,7 @@ const HomeScreen = ({ navigation }) => {
       }),
     ]).start();
 
-    // Atualizar hora a cada minuto
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
@@ -71,13 +60,8 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const handleLogout = async () => {
-    try {
-      await signOut()
-      console.log("Logout realizado com sucesso")
-    } catch (error) {
-      console.error("Erro no logout:", error)
-    }
-  }
+    try { await signOut(); } catch (error) { console.error("Erro no logout:", error); }
+  };
 
   const menuItems = [
     {
@@ -130,96 +114,71 @@ const HomeScreen = ({ navigation }) => {
     },
   ];
 
-  useEffect(() => {
-    if (menuVisible) {
-      Animated.timing(menuSlideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    } else {
-      Animated.timing(menuSlideAnim, {
-        toValue: -width * 0.8,
-        duration: 300,
-        useNativeDriver: false,
-      }).start(() => {
-        menuSlideAnim.setValue(-width * 0.8);
-      });
-    }
-  }, [menuVisible, menuSlideAnim]);
+  const toggleMenu = () => {
+    const toValue = menuVisible ? 0 : 1;
+    setMenuVisible(!menuVisible);
+    Animated.spring(menuAnimation, {
+      toValue,
+      friction: 10,
+      useNativeDriver: false,
+    }).start();
+  };
 
+  const onMenuItemPress = (item) => {
+    toggleMenu();
+    setTimeout(() => {
+      item.onPress();
+    }, 250);
+  };
+
+  const menuTranslateX = menuAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-width * 0.82, 0],
+  });
+
+  const overlayOpacity = menuAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.6],
+  });
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-      
-      {/* Header */}
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+
       <View style={styles.header}>
-        <TouchableOpacity style={styles.menuButton} onPress={() => setMenuVisible(true)}>
+        <TouchableOpacity style={styles.menuButton} onPress={toggleMenu}>
           <View style={styles.menuIconContainer}>
-            <View style={styles.menuLine} />
-            <View style={styles.menuLine} />
-            <View style={styles.menuLine} />
+            <Feather name="menu" size={24} color={colors.primary} />
           </View>
         </TouchableOpacity>
-
         <View style={styles.logoContainer}>
-          <Text style={styles.logo}>DentalConnect</Text>
+          <MaterialCommunityIcons name="tooth-outline" size={20} color={colors.primary} style={{ marginRight: 6 }} />
+          <Text style={styles.logoText}>DentalConnect</Text>
         </View>
+        <View style={{ width: 40 }} />
       </View>
 
-
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Welcome Section Moderna */}
-        <Animated.View style={[styles.welcomeContainer, { 
-          opacity: fadeAnim, 
-          transform: [
-            { translateY: slideAnim },
-            { scale: scaleAnim }
-          ] 
-        }]}>
+        <Animated.View style={[styles.welcomeContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale: scaleAnim }] }]}>
           <View style={styles.welcomeGradient}>
-            <View style={styles.welcomePattern} />
+            <View style={styles.decorativeCircle1} />
+            <View style={styles.decorativeCircle2} />
             <View style={styles.welcomeContent}>
               <View style={styles.welcomeTextSection}>
-                <View style={styles.greetingContainer}>
-                  <Text style={styles.greeting}>{getGreeting()}! 👋</Text>
-                  <View style={styles.greetingGlow} />
-                </View>
-                <Text style={styles.userName}>{user?.email?.split('@')[0] || 'Usuário'}</Text>
+                <View style={styles.greetingContainer}><Text style={styles.greeting}>{getGreeting()}! 👋</Text></View>
+                <Text style={styles.userName}>{getFirstName(user?.nome)}</Text>
                 <Text style={styles.subtitle}>Bem-vindo ao DentalConnect</Text>
-                <View style={styles.timeContainer}>
-                  <Text style={styles.timeText}>
-                    {currentTime.toLocaleTimeString('pt-BR', { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </Text>
-                </View>
+                <View style={styles.timeContainer}><Feather name="clock" size={12} color={colors.background} style={{ marginRight: 4 }} /><Text style={styles.timeText}>{currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Text></View>
               </View>
-              <Animated.View style={[styles.logoContainerAnimated, {
-                transform: [{
-                  rotate: rotateAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['0deg', '360deg']
-                  })
-                }]
-              }]}>
-                <Text style={styles.logo}>🦷</Text>
-                <View style={styles.logoGlow} />
-                <View style={styles.logoRing} />
+              <Animated.View style={[styles.logoContainerAnimated, { transform: [{ scale: scaleAnim }] }]}>
+                <View style={styles.logoGlow} /><MaterialCommunityIcons name="tooth-outline" size={42} color={colors.primary} style={styles.logoIcon} />
               </Animated.View>
             </View>
           </View>
         </Animated.View>
 
-        {/* Cards de funcionalidades principais */}
         <Animated.View style={[styles.mainFeatures, { opacity: fadeAnim }]}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>O que você precisa hoje?</Text>
-            <View style={styles.sectionDivider} />
-          </View>
-          
+          <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>O que você precisa hoje?</Text><View style={styles.sectionDivider} /></View>
           <View style={styles.featuresGrid}>
             <TouchableOpacity 
               style={[styles.featureCard, styles.primaryCard]} 
@@ -296,141 +255,45 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </Animated.View>
 
-        {/* Seção de informações rápidas */}
         <Animated.View style={[styles.quickInfo, { opacity: fadeAnim }]}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Suas Estatísticas</Text>
-            <View style={styles.sectionDivider} />
-          </View>
-          
+          <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Suas Estatísticas</Text><View style={styles.sectionDivider} /></View>
           <View style={styles.infoCards}>
-            <View style={styles.infoCard}>
-              <View style={styles.infoIconContainer}>
-                <Text style={styles.infoIcon}>📅</Text>
-              </View>
-              <Text style={styles.infoNumber}>0</Text>
-              <Text style={styles.infoLabel}>Consultas Agendadas</Text>
-              <View style={styles.infoProgress}>
-                <View style={styles.progressBar}>
-                  <View style={styles.progressFill} />
-                </View>
-              </View>
-            </View>
-            
-            <View style={styles.infoCard}>
-              <View style={styles.infoIconContainer}>
-                <Text style={styles.infoIcon}>✅</Text>
-              </View>
-              <Text style={styles.infoNumber}>0</Text>
-              <Text style={styles.infoLabel}>Consultas Realizadas</Text>
-              <View style={styles.infoProgress}>
-                <View style={styles.progressBar}>
-                  <View style={styles.progressFill} />
-                </View>
-              </View>
-            </View>
+            <View style={[styles.infoCard, { borderLeftWidth: 4, borderLeftColor: colors.primary }]}><View style={[styles.infoIconContainer, { backgroundColor: colors.primary + '15' }]}><MaterialCommunityIcons name="calendar-multiple" size={24} color={colors.primary} /></View><Text style={styles.infoNumber}>0</Text><Text style={styles.infoLabel}>Consultas Agendadas</Text></View>
+            <View style={[styles.infoCard, { borderLeftWidth: 4, borderLeftColor: '#10B981' }]}><View style={[styles.infoIconContainer, { backgroundColor: '#10B98115' }]}><MaterialCommunityIcons name="calendar-check-outline" size={24} color="#10B981" /></View><Text style={styles.infoNumber}>0</Text><Text style={styles.infoLabel}>Consultas Realizadas</Text></View>
           </View>
         </Animated.View>
 
-        {/* Ações rápidas modernas */}
         <Animated.View style={[styles.quickActions, { opacity: fadeAnim }]}>
-          <View style={styles.quickActionsHeader}>
-            <Text style={styles.quickActionsTitle}>Ações Rápidas</Text>
-            <View style={styles.quickActionsSubtitle}>
-              <Text style={styles.quickActionsSubtitleText}>Acesso rápido às principais funcionalidades</Text>
-            </View>
-          </View>
-          
+          <View style={styles.quickActionsHeader}><Text style={styles.quickActionsTitle}>Ações Rápidas</Text></View>
           <View style={styles.quickActionsGrid}>
-            <TouchableOpacity style={styles.quickActionButton} activeOpacity={0.7}>
-              <View style={styles.actionIconContainer}>
-                <Text style={styles.quickActionEmoji}>⚙️</Text>
-                <View style={styles.actionIconGlow} />
-              </View>
-              <Text style={styles.quickActionText}>Configurações</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.quickActionButton} activeOpacity={0.7}>
-              <View style={styles.actionIconContainer}>
-                <Text style={styles.quickActionEmoji}>📞</Text>
-                <View style={styles.actionIconGlow} />
-              </View>
-              <Text style={styles.quickActionText}>Suporte</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.quickActionButton} onPress={handleLogout} activeOpacity={0.7}>
-              <View style={styles.actionIconContainer}>
-                <Text style={styles.quickActionEmoji}>🚪</Text>
-                <View style={styles.actionIconGlow} />
-              </View>
-              <Text style={styles.quickActionText}>Sair</Text>
-            </TouchableOpacity>
+            <TouchableOpacity style={styles.quickActionButton} activeOpacity={0.7} onPress={() => navigation.navigate('Configuracoes')}><View style={[styles.actionIconContainer, { backgroundColor: '#F3F4F6' }]}><Feather name="settings" size={24} color={colors.primary} /></View><Text style={styles.quickActionText}>Configurações</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.quickActionButton} activeOpacity={0.7} onPress={() => navigation.navigate('FaleConosco')}><View style={[styles.actionIconContainer, { backgroundColor: '#F3F4F6' }]}><Feather name="headphones" size={24} color={colors.primary} /></View><Text style={styles.quickActionText}>Suporte</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.quickActionButton} onPress={handleLogout} activeOpacity={0.7}><View style={[styles.actionIconContainer, { backgroundColor: '#FEE2E2' }]}><Feather name="log-out" size={24} color="#EF4444" /></View><Text style={styles.quickActionText}>Sair</Text></TouchableOpacity>
           </View>
         </Animated.View>
       </ScrollView>
 
-      {/* Side Menu Modal */}
-      <Modal
-        transparent={true}
-        visible={menuVisible}
-        animationType="none"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity style={styles.modalBackground} onPress={() => setMenuVisible(false)} />
-          <Animated.View style={[styles.sideMenu, { left: menuSlideAnim }]}>
-            <View style={styles.menuHeader}>
-              <View style={styles.menuHeaderContent}>
-                <View style={styles.menuLogoContainer}>
-                  <Text style={styles.menuLogo}>🦷</Text>
-                </View>
-                <Text style={styles.menuTitle}>DentalConnect</Text>
-              </View>
-              <TouchableOpacity style={styles.closeButton} onPress={() => setMenuVisible(false)}>
-                <Feather name="x" size={24} color={colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.menuContent}>
-              <View style={styles.menuSection}>
-                <Text style={styles.menuSectionTitle}>Navegação</Text>
-                {menuItems.map((item, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.menuItem}
-                    onPress={() => {
-                      item.onPress();
-                    }}
-                  >
-                    <View style={styles.menuItemIconContainer}>
-                      {item.icon}
-                    </View>
-                    <Text style={styles.menuItemText}>{item.title}</Text>
-                    <Feather name="chevron-right" size={16} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                ))}
-              </View>
-              
-              <View style={styles.menuDivider} />
-              
-              {/* Botão Sair */}
-              <TouchableOpacity
-                style={styles.menuLogoutItem}
-                onPress={() => {
-                  handleLogout();
-                  setMenuVisible(false);
-                }}
-              >
-                <View style={styles.menuLogoutIconContainer}>
-                  <Feather name="log-out" size={22} color="#FF6B35" />
-                </View>
-                <Text style={styles.menuLogoutText}>Sair da Conta</Text>
-                <Feather name="chevron-right" size={16} color="#FF6B35" />
-              </TouchableOpacity>
-            </ScrollView>
-          </Animated.View>
+      {menuVisible && (
+        <Animated.View style={[styles.modalOverlay, { opacity: overlayOpacity }]}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={toggleMenu} />
+        </Animated.View>
+      )}
+      <Animated.View style={[styles.sideMenu, { transform: [{ translateX: menuTranslateX }] }]}>
+        <View style={styles.menuHeader}>
+          <View style={styles.menuHeaderContent}><View style={styles.menuLogoContainer}><MaterialCommunityIcons name="tooth-outline" size={24} color={colors.primary} /></View><Text style={styles.menuTitle}>DentalConnect</Text></View>
+          <TouchableOpacity style={styles.closeButton} onPress={toggleMenu}><Feather name="x" size={24} color={colors.background} /></TouchableOpacity>
         </View>
-      </Modal>
+        <ScrollView style={styles.menuContent}>
+          <View style={styles.menuSection}>
+            <Text style={styles.menuSectionTitle}>Navegação</Text>
+            {menuItems.map((item, index) => (
+              <TouchableOpacity key={index} style={styles.menuItem} onPress={() => onMenuItemPress(item)} activeOpacity={0.7}><View style={styles.menuItemIconContainer}>{item.icon}</View><Text style={styles.menuItemText}>{item.title}</Text><Feather name="chevron-right" size={18} color={colors.textSecondary} /></TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.menuDivider} />
+          <TouchableOpacity style={styles.menuLogoutItem} onPress={() => { toggleMenu(); setTimeout(handleLogout, 300); }} activeOpacity={0.7}><View style={styles.menuLogoutIconContainer}><Feather name="log-out" size={22} color="#EF4444" /></View><Text style={styles.menuLogoutText}>Sair da Conta</Text></TouchableOpacity>
+        </ScrollView>
+      </Animated.View>
     </SafeAreaView>
   );
 };
@@ -438,441 +301,294 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F9FAFB'
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: spacing.paddingHorizontal,
-    paddingVertical: spacing.md,
-    backgroundColor: "#fff",
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    borderBottomColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
   },
   menuButton: {
-    padding: spacing.sm,
-    borderRadius: 8,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
+    padding: 8
   },
   menuIconContainer: {
-    width: 20,
-    height: 16,
-    justifyContent: 'space-between',
-  },
-  menuLine: {
-    width: '100%',
-    height: 2,
-    backgroundColor: colors.primary,
-    borderRadius: 1,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logoContainer: {
     flex: 1,
     alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
-  logo: {
-    fontSize: 24,
-    fontWeight: "bold",
+  logoText: {
+    fontSize: 20,
+    fontWeight: "800",
     color: colors.primary,
-  },
-  logoutHeaderButton: {
-    backgroundColor: "#FF6B35",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: spacing.borderRadius,
-  },
-  logoutHeaderText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 14,
+    letterSpacing: -0.5,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 30,
-  },
-  
-  // Header styles
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.paddingHorizontal,
-    paddingVertical: spacing.md,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    paddingBottom: 30
   },
   welcomeContainer: {
     marginHorizontal: spacing.paddingHorizontal,
-    marginBottom: 25,
-    borderRadius: 25,
+    marginTop: 20,
+    marginBottom: 28,
+    borderRadius: 28,
     overflow: 'hidden',
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowColor: '#0F766E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 12
   },
   welcomeGradient: {
     backgroundColor: colors.primary,
-    paddingTop: 25,
-    paddingBottom: 35,
-    paddingHorizontal: spacing.paddingHorizontal,
+    paddingTop: 28,
+    paddingBottom: 32,
+    paddingHorizontal: 24,
     position: 'relative',
-    overflow: 'hidden',
+    overflow: 'hidden'
   },
-  welcomePattern: {
+  decorativeCircle1: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 25,
+    top: -30,
+    right: -20,
+  },
+  decorativeCircle2: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    bottom: -20,
+    left: -10,
   },
   welcomeContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    zIndex: 2,
+    zIndex: 2
   },
   welcomeTextSection: {
-    flex: 1,
-  },
-  headerPattern: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 35,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    zIndex: 2,
-  },
-  welcomeSection: {
-    flex: 1,
+    flex: 1
   },
   greetingContainer: {
-    position: 'relative',
-    marginBottom: 4,
+    marginBottom: 6
   },
   greeting: {
     fontSize: 16,
-    color: colors.background,
-    opacity: 0.9,
+    color: '#FFFFFF',
     fontWeight: '600',
-    zIndex: 2,
-  },
-  greetingGlow: {
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    zIndex: 1,
+    letterSpacing: 0.3,
   },
   userName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.background,
-    marginBottom: 4,
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
     textTransform: 'capitalize',
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 14,
-    color: colors.background,
-    opacity: 0.8,
-    marginBottom: 8,
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginBottom: 12,
+    fontWeight: '500',
   },
   timeContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   timeText: {
-    fontSize: 12,
-    color: colors.background,
-    fontWeight: '600',
-  },
-  logoContainer: {
-    flex: 1,
-    alignItems: "center",
+    fontSize: 13,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   logoContainerAnimated: {
-    width: 75,
-    height: 75,
-    backgroundColor: colors.background,
-    borderRadius: 37.5,
+    width: 80,
+    height: 80,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: colors.shadow,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 16,
-    elevation: 8,
-    position: 'relative',
+    elevation: 10,
+    position: 'relative'
   },
-  logo: {
-    fontSize: 34,
-    zIndex: 3,
+  logoIcon: {
+    zIndex: 3
   },
   logoGlow: {
     position: 'absolute',
-    width: 85,
-    height: 85,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 42.5,
-    top: -5,
-    left: -5,
-    zIndex: 1,
+    width: 100,
+    height: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 50,
+    zIndex: 1
   },
-  logoRing: {
-    position: 'absolute',
-    width: 90,
-    height: 90,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 45,
-    top: -7.5,
-    left: -7.5,
-    zIndex: 0,
-  },
-  
-  // Main features styles
   mainFeatures: {
     paddingHorizontal: spacing.paddingHorizontal,
-    marginBottom: 30,
+    marginBottom: 32
   },
   sectionHeader: {
-    marginBottom: 20,
+    marginBottom: 20
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
-    color: colors.textPrimary,
-    marginBottom: 8,
+    color: '#111827',
+    marginBottom: 10,
+    letterSpacing: -0.5,
   },
   sectionDivider: {
-    height: 3,
+    height: 4,
     backgroundColor: colors.primary,
     borderRadius: 2,
-    width: 50,
+    width: 60
   },
   featuresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'space-between'
   },
   featureCard: {
     width: (width - spacing.paddingHorizontal * 2 - 15) / 2,
-    backgroundColor: colors.background,
-    borderRadius: 28,
+    borderRadius: 24,
     marginBottom: 15,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
     elevation: 8,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    position: 'relative',
     overflow: 'hidden',
+    minHeight: 160,
   },
-  cardGradient: {
+  cardContent: {
     padding: 20,
-    position: 'relative',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 28,
+    flex: 1,
+    justifyContent: 'space-between',
   },
-  cardGlassEffect: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 28,
-    zIndex: 1,
-  },
-  primaryCard: {
-    borderLeftWidth: 6,
-    borderLeftColor: colors.primary,
-    backgroundColor: 'rgba(15, 118, 110, 0.03)',
-  },
-  secondaryCard: {
-    borderLeftWidth: 6,
-    borderLeftColor: colors.info,
-    backgroundColor: 'rgba(59, 130, 246, 0.03)',
-  },
-  tertiaryCard: {
-    borderLeftWidth: 6,
-    borderLeftColor: colors.success,
-    backgroundColor: 'rgba(16, 185, 129, 0.03)',
-  },
-  quaternaryCard: {
-    borderLeftWidth: 6,
-    borderLeftColor: colors.warning,
-    backgroundColor: 'rgba(245, 158, 11, 0.03)',
+  cardIconWrapper: {
+    marginBottom: 12,
   },
   cardIcon: {
-    width: 65,
-    height: 65,
-    backgroundColor: colors.secondary,
-    borderRadius: 32.5,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 14,
-    shadowColor: colors.shadow,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
-    position: 'relative',
-    zIndex: 2,
   },
-  cardIconGlow: {
-    position: 'absolute',
-    width: 70,
-    height: 70,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    borderRadius: 35,
-    top: -2.5,
-    left: -2.5,
-    zIndex: 1,
-  },
-  cardEmoji: {
-    fontSize: 30,
-    zIndex: 3,
+  cardTextContainer: {
+    flex: 1,
   },
   cardTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: '#FFFFFF',
     marginBottom: 6,
+    letterSpacing: -0.3,
   },
   cardDescription: {
-    fontSize: 13,
-    color: colors.textSecondary,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.85)',
     lineHeight: 18,
-    marginBottom: 8,
     fontWeight: '500',
-  },
-  cardBadge: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    backgroundColor: colors.primary,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  badgeText: {
-    fontSize: 10,
-    color: colors.background,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   cardArrow: {
     position: 'absolute',
     bottom: 16,
     right: 16,
-    width: 28,
-    height: 28,
-    backgroundColor: colors.primary,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  arrowText: {
-    fontSize: 16,
-    color: colors.background,
-    fontWeight: '700',
-  },
-  cardShine: {
-    position: 'absolute',
-    top: 0,
-    left: -100,
-    width: 100,
-    height: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    transform: [{ skewX: '-15deg' }],
-    zIndex: 1,
-  },
-  
-  // Quick info styles
   quickInfo: {
     paddingHorizontal: spacing.paddingHorizontal,
-    marginBottom: 30,
+    marginBottom: 32
   },
   infoCards: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-between'
   },
   infoCard: {
     flex: 1,
-    backgroundColor: colors.background,
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     padding: 20,
     marginHorizontal: 6,
     alignItems: 'center',
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 6,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    position: 'relative',
-    overflow: 'hidden',
   },
   infoIconContainer: {
-    width: 40,
-    height: 40,
-    backgroundColor: colors.secondary,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  infoIcon: {
-    fontSize: 18,
+    marginBottom: 12,
   },
   infoNumber: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '900',
-    color: colors.primary,
+    color: '#111827',
     marginBottom: 6,
+    letterSpacing: -1,
   },
   infoLabel: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: '#6B7280',
     textAlign: 'center',
-    fontWeight: '700',
+    fontWeight: '600',
     lineHeight: 16,
-    marginBottom: 8,
   },
+<<<<<<< HEAD
   infoProgress: {
     width: '100%',
     alignItems: 'center',
@@ -891,277 +607,196 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   
-  // Quick actions styles
   quickActions: {
-    backgroundColor: colors.secondary,
+    backgroundColor: '#FFFFFF',
     marginHorizontal: spacing.paddingHorizontal,
-    borderRadius: 28,
-    marginTop: 20,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
+    borderRadius: 24,
+    marginTop: 8,
+    paddingBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
     elevation: 6,
-    paddingBottom: 20,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
   },
   quickActionsHeader: {
     paddingHorizontal: spacing.paddingHorizontal,
-    paddingTop: 25,
+    paddingTop: 24,
     paddingBottom: 20,
-    alignItems: 'center',
+    alignItems: 'center'
   },
   quickActionsTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: colors.textPrimary,
+    color: '#111827',
     textAlign: 'center',
-    marginBottom: 8,
-  },
-  quickActionsSubtitle: {
-    marginBottom: 5,
-  },
-  quickActionsSubtitleText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    fontWeight: '500',
+    letterSpacing: -0.5,
   },
   quickActionsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingHorizontal: spacing.paddingHorizontal,
+    paddingHorizontal: spacing.paddingHorizontal
   },
   quickActionButton: {
     alignItems: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 22,
-    borderRadius: 20,
-    minWidth: 95,
-    backgroundColor: colors.background,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    position: 'relative',
-    overflow: 'hidden',
+    paddingVertical: 12,
+    minWidth: 95
   },
   actionIconContainer: {
-    width: 50,
-    height: 50,
-    backgroundColor: colors.secondary,
-    borderRadius: 25,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 3,
-    position: 'relative',
-  },
-  actionIconGlow: {
-    position: 'absolute',
-    width: 55,
-    height: 55,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    borderRadius: 27.5,
-    top: -2.5,
-    left: -2.5,
-    zIndex: 1,
-  },
-  quickActionEmoji: {
-    fontSize: 20,
   },
   quickActionText: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: '#374151',
     fontWeight: '700',
     textAlign: 'center',
-  },
-  content: {
-    paddingHorizontal: spacing.paddingHorizontal,
-    paddingVertical: spacing.paddingVertical,
-  },
-  welcomeSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: spacing.xl,
-  },
-  userAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#E8F4FD",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: spacing.md,
-    position: "relative",
-  },
-  avatarText: {
-    fontSize: 24,
-    color: colors.primary,
-  },
-  onlineIndicator: {
-    position: "absolute",
-    bottom: 2,
-    right: 2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: "#4CAF50",
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-  welcomeText: {
-    flex: 1,
-  },
-  greeting: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  question: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    lineHeight: 22,
+    letterSpacing: -0.2,
   },
   modalOverlay: {
     flex: 1,
-    flexDirection: "row",
-    justifyContent: "flex-start",
-  },
-  modalBackground: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.6)"
   },
   sideMenu: {
-    position: "absolute", 
-    left: 0,             
-    top: 0,               
-    bottom: 0,            
-    width: width * 0.8,
-    backgroundColor: "#fff",
-    paddingTop: 50,
-    zIndex: 10,           
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: width * 0.82,
+    backgroundColor: '#FFFFFF',
+    zIndex: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 4, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 20,
   },
   menuHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.lg,
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 24,
     backgroundColor: colors.primary,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   menuHeaderContent: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "center"
   },
   menuLogoContainer: {
-    width: 40,
-    height: 40,
-    backgroundColor: colors.background,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.sm,
-  },
-  menuLogo: {
-    fontSize: 20,
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   menuTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.background,
+    fontSize: 22,
+    fontWeight: "800",
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
   },
   closeButton: {
-    padding: spacing.sm,
-    borderRadius: 20,
+    padding: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 20,
   },
   menuContent: {
     flex: 1,
-    paddingTop: spacing.md,
+    paddingTop: 24,
+    backgroundColor: '#F9FAFB',
   },
   menuSection: {
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.md,
+    paddingHorizontal: 24,
+    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    marginHorizontal: 12,
+    borderRadius: 16,
   },
   menuSectionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
+    fontSize: 12,
+    fontWeight: "700",
+    color: '#6B7280',
+    marginBottom: 16,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    marginBottom: spacing.xs,
-    borderRadius: spacing.borderRadius,
-    backgroundColor: 'transparent',
+    paddingVertical: 14,
+    marginBottom: 4,
+    borderRadius: 12,
+    paddingHorizontal: 8,
   },
   menuItemIconContainer: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.md,
+    marginRight: 14,
   },
   menuItemText: {
     flex: 1,
     fontSize: 16,
-    color: colors.textPrimary,
-    fontWeight: "500",
+    color: '#111827',
+    fontWeight: "600",
+    letterSpacing: -0.2,
   },
   menuDivider: {
     height: 1,
-    backgroundColor: colors.borderLight,
-    marginHorizontal: spacing.lg,
-    marginVertical: spacing.md,
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 24,
+    marginVertical: 16
   },
   menuLogoutItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-    borderRadius: spacing.borderRadius,
-    backgroundColor: "#FFF5F5",
-    borderWidth: 1,
-    borderColor: "#FFE5E5",
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    marginHorizontal: 24,
+    marginBottom: 24,
+    borderRadius: 16,
+    backgroundColor: '#FEE2E2',
   },
   menuLogoutIconContainer: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(255, 107, 53, 0.1)',
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.md,
+    marginRight: 14,
   },
   menuLogoutText: {
     flex: 1,
     fontSize: 16,
-    color: "#FF6B35",
-    fontWeight: "600",
+    color: '#EF4444',
+    fontWeight: "700",
+    letterSpacing: -0.2,
   },
-  
-})
+});
 
-export default HomeScreen
+export default HomeScreen;

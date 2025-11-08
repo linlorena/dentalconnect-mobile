@@ -373,7 +373,10 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
           >
             <TouchableOpacity
               style={styles.primaryButton}
-              onPress={handleAgendarConsulta}
+              onPress={navigation.navigate('SelecionarHorarioScreen', { 
+                clinicaId: local.id,
+                nomeDaClinica: local.nome, 
+            })}
               activeOpacity={0.8}
             >
               <LinearGradient
@@ -381,7 +384,7 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
                 style={styles.primaryButtonGradient}
               >
                 <Ionicons name="calendar" size={20} color={colors.white} />
-                <Text style={styles.primaryButtonText}>Agendar Consulta</Text>
+                <Text style={styles.primaryButtonText}>Agendar Avaliação</Text>
               </LinearGradient>
             </TouchableOpacity>
 
