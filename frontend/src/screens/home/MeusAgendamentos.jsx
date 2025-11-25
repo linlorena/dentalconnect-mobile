@@ -22,6 +22,12 @@ const DetalhesAgendamentoItem = ({ route }) => {
     const [error, setError] = useState(null);
     const [avatarError, setAvatarError] = useState(false);
 
+    const setConnectionError = (msg) => {
+        setError(msg);
+        setLoadingData(false);
+        setLoading(false);
+    }
+
     useEffect(() => {
         if (!agendamentoParam && agendamentoId) {
             fetchAgendamento();
@@ -31,15 +37,13 @@ const DetalhesAgendamentoItem = ({ route }) => {
         }
     }, []);
 
-    // Reset avatar error when dentist changes
     useEffect(() => {
         setAvatarError(false);
     }, [dentista?.id, agendamento?.dentista]);
 
     const fetchAgendamento = async () => {
         if (!token || !user?.id) {
-            setError('Usuário não autenticado. Por favor, faça login novamente.');
-            setLoading(false);
+            setConnectionError('Usuário não autenticado. Por favor, faça login novamente.');
             return;
         }
 
@@ -59,7 +63,7 @@ const DetalhesAgendamentoItem = ({ route }) => {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    setError('Sessão expirada. Por favor, faça login novamente.');
+                    setConnectionError('Sessão expirada. Por favor, faça login novamente.');
                     return;
                 }
                 throw new Error('Erro ao buscar agendamento');
@@ -71,8 +75,7 @@ const DetalhesAgendamentoItem = ({ route }) => {
             );
 
             if (!agendamentoEncontrado) {
-                setError('Agendamento não encontrado.');
-                setLoading(false);
+                setConnectionError('Agendamento não encontrado.');
                 return;
             }
 
@@ -82,8 +85,7 @@ const DetalhesAgendamentoItem = ({ route }) => {
             setLoadingData(false);
         } catch (err) {
             console.error('Erro ao buscar agendamento:', err);
-            setError('Erro ao carregar dados do agendamento. Tente novamente.');
-            setLoadingData(false);
+            setConnectionError('Erro ao carregar dados do agendamento. Tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -98,7 +100,7 @@ const DetalhesAgendamentoItem = ({ route }) => {
 
     const fetchRelatedDataForAgendamento = async (agendamentoData) => {
         const promises = [];
-
+        
         if (agendamentoData.dentista) {
             promises.push(fetchDentista(agendamentoData.dentista));
         }
@@ -133,9 +135,12 @@ const DetalhesAgendamentoItem = ({ route }) => {
             if (response.ok) {
                 const data = await response.json();
                 setDentista(data);
+            } else {
+                // Cenário de erro: Dentista não encontrado (404) ou outro erro HTTP
+                console.warn(`[API] Não foi possível carregar o dentista ${dentistaId}. Status: ${response.status}`);
             }
         } catch (err) {
-            console.error('Erro ao buscar dentista:', err);
+            console.error('Erro de rede ao buscar dentista:', err);
         }
     };
 
@@ -143,6 +148,7 @@ const DetalhesAgendamentoItem = ({ route }) => {
         if (!localId || !token) return;
 
         try {
+            // Nota: Esta rota ainda está buscando todos os locais. Idealmente deveria ser por ID.
             const response = await fetch(
                 `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LOCALS}`,
                 {
@@ -157,10 +163,15 @@ const DetalhesAgendamentoItem = ({ route }) => {
                 const localEncontrado = locais.find(l => l.id === localId || l.id === parseInt(localId));
                 if (localEncontrado) {
                     setLocal(localEncontrado);
+                } else {
+                    // Cenário de erro: Local não encontrado na lista
+                    console.warn(`[Local] Local ${localId} não encontrado na lista retornada pela API.`);
                 }
+            } else {
+                console.warn(`[API] Erro ao buscar lista de locais. Status: ${response.status}`);
             }
         } catch (err) {
-            console.error('Erro ao buscar local:', err);
+            console.error('Erro de rede ao buscar local:', err);
         }
     };
 
@@ -180,11 +191,16 @@ const DetalhesAgendamentoItem = ({ route }) => {
             if (response.ok) {
                 const data = await response.json();
                 setServico(data);
+            } else {
+                // Cenário de erro: Serviço não encontrado (404) ou outro erro HTTP
+                console.warn(`[API] Não foi possível carregar o serviço ${servicoId}. Status: ${response.status}`);
             }
         } catch (err) {
-            console.error('Erro ao buscar serviço:', err);
+            console.error('Erro de rede ao buscar serviço:', err);
         }
     };
+
+    // --- Funções de Formatação ---
 
     const formatarDataCompleta = (dataString) => {
         if (!dataString) return '-';
@@ -216,20 +232,26 @@ const DetalhesAgendamentoItem = ({ route }) => {
     };
 
     const getServicoNome = () => {
+        let nomeServico = null;
+
         if (servico?.nome) {
-            return servico.nome;
+            nomeServico = servico.nome;
+        } 
+        else if (agendamento?.servico && typeof agendamento.servico === 'object' && agendamento.servico.nome) {
+            nomeServico = agendamento.servico.nome;
         }
-        if (agendamento?.servico && typeof agendamento.servico === 'object' && agendamento.servico.nome) {
-            return agendamento.servico.nome;
-        }
-        return 'Consulta de Rotina';
+
+        return nomeServico || 'Consulta de Rotina';
     };
 
     const handleVerNoMapa = () => {
         if (!local || !local.endereco) return;
-        const enderecoCompleto = `${local.endereco}${local.numero ? `, ${local.numero}` : ''}${local.cidade ? `, ${local.cidade}` : ''}${local.estado ? `, ${local.estado}` : ''}`;
+        const { endereco, numero, cidade, estado } = local;
+        const enderecoCompleto = `${endereco}${numero ? `, ${numero}` : ''}${cidade ? `, ${cidade}` : ''}${estado ? `, ${estado}` : ''}`;
         const enderecoEncoded = encodeURIComponent(enderecoCompleto);
-        Linking.openURL(`https://maps.google.com/?q=${enderecoEncoded}`);
+        
+        // Uso de 'maps.google.com' no link, que é o formato mais universal.
+        Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${enderecoEncoded}`);
     };
 
     if (loading) {
@@ -385,6 +407,7 @@ const DetalhesAgendamentoItem = ({ route }) => {
                                                     {local.estado && local.estado}
                                                 </Text>
                                             )}
+                                            {/* Botão de mapa */}
                                             <TouchableOpacity style={styles.mapButton} onPress={handleVerNoMapa}>
                                                 <Feather name="map-pin" size={16} color="#FFFFFF" />
                                                 <Text style={styles.mapButtonText}>Ver no mapa</Text>
@@ -401,6 +424,8 @@ const DetalhesAgendamentoItem = ({ route }) => {
     );
 };
 
+const PADDING_HORIZONTAL_CUSTOM = spacing.paddingHorizontal; 
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -408,7 +433,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         flexGrow: 1,
-        padding: spacing.paddingHorizontal,
+        paddingHorizontal: PADDING_HORIZONTAL_CUSTOM, 
         paddingTop: spacing.xxl,
     },
     header: {
