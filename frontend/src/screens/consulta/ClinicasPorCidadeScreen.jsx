@@ -10,16 +10,41 @@ import {
   Animated,
   Dimensions,
   StatusBar,
+  ScrollView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialIcons, Ionicons, Feather } from '@expo/vector-icons';
-import Button from '../../components/common/Button';
-import colors from '../../styles/colors';
-import spacing from '../../styles/spacing';
+import { MaterialCommunityIcons, Feather, Ionicons } from '@expo/vector-icons';
 import API_CONFIG from '../../config/api';
 import { useAuth } from '../../context/auth';
 
 const { width, height } = Dimensions.get('window');
+
+const COLORS = {
+  primary: "#0F76AE",
+  primaryLight: "#3598C9",
+  primaryDark: "#0B5B87",
+  accent: "#0F76AE",
+  textPrimary: "#0F172A",
+  textSecondary: "#475569",
+  background: "#F8FAFC",
+  backgroundAlt: "#F0F4F8",
+  white: "#FFFFFF",
+  border: "#DDE1E6",
+  success: "#10B981",
+  lightBlue: "#E6F3F9",
+  lightBlueAccent: "#B3DCEF",
+  teal: "#E0F2F1",
+  purple: "#F3E5F5",
+  error: "#EF4444", // Adicionado para o status Fechado
+}
+
+const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  paddingHorizontal: 16,
+}
 
 const ClinicasPorCidadeScreen = ({ route, navigation }) => {
   const { cidade } = route.params;
@@ -195,63 +220,46 @@ const ClinicasPorCidadeScreen = ({ route, navigation }) => {
         <TouchableOpacity
           style={styles.clinicaCardContent}
           onPress={() => handleClinicaSelecionada(item)}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
-          <LinearGradient
-            colors={['#ffffff', '#f8f9fa']}
-            style={styles.clinicaGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.clinicaHeader}>
-              <View style={styles.clinicaIconContainer}>
-                <Ionicons name="medical" size={24} color={colors.primary} />
+          <View style={styles.cardGradientBg} />
+
+          <View style={styles.cardBody}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardIconContainer}>
+                <MaterialCommunityIcons name="hospital-building" size={24} color={COLORS.white} />
               </View>
-              <View style={styles.clinicaInfo}>
+              <View style={styles.cardHeaderText}>
                 <Text style={styles.clinicaNome}>{item.nome}</Text>
                 <View style={styles.statusContainer}>
-                  <View style={[styles.statusDot, { backgroundColor: statusClinica.aberto ? colors.success : (colors.error || '#EF4444') }]} />
-                  <Text style={[styles.statusText, { color: statusClinica.aberto ? colors.success : (colors.error || '#EF4444') }]}>
+                  <View style={[styles.statusDot, { backgroundColor: statusClinica.aberto ? COLORS.success : COLORS.error }]} />
+                  <Text style={[styles.statusText, { color: statusClinica.aberto ? COLORS.success : COLORS.error }]}>
                     {statusClinica.texto}
                   </Text>
                 </View>
               </View>
-              <View style={styles.arrowContainer}>
-                <Ionicons name="chevron-forward" size={20} color={colors.primary} />
+              <View style={styles.chevronIcon}>
+                <Feather name="arrow-right" size={20} color={COLORS.primary} />
               </View>
             </View>
             
-            <View style={styles.clinicaDetails}>
-              <View style={styles.detailRow}>
-                <Ionicons name="location" size={16} color={colors.textSecondary} />
-                <Text style={styles.detailText} numberOfLines={2}>
+            <View style={styles.cardDivider} />
+            
+            <View style={styles.cardStats}>
+              <View style={styles.statBadgeAddress}>
+                <MaterialCommunityIcons name="map-marker-outline" size={16} color={COLORS.primary} />
+                <Text style={styles.statText} numberOfLines={1}>
                   {item.endereco}
                 </Text>
               </View>
-              
-              {item.telefone && (
-                <View style={styles.detailRow}>
-                  <Ionicons name="call" size={16} color={colors.textSecondary} />
-                  <Text style={styles.detailText}>{item.telefone}</Text>
-                </View>
-              )}
-              
-              <View style={styles.detailRow}>
-                <Ionicons name="time" size={16} color={colors.textSecondary} />
-                <Text style={styles.detailText}>
+              <View style={styles.statBadge}>
+                <MaterialCommunityIcons name="clock-outline" size={16} color={COLORS.primary} />
+                <Text style={styles.statText} numberOfLines={1}>
                   {item.horario || 'Seg-Sex: 8h-18h'}
                 </Text>
               </View>
             </View>
-            
-            <View style={styles.clinicaFooter}>
-              <View style={styles.clinicaBadge}>
-                <Ionicons name="star" size={14} color={colors.white} />
-                <Text style={styles.clinicaBadgeText}>4.8</Text>
-              </View>
-              <Text style={styles.clinicaAction}>Toque para ver detalhes</Text>
-            </View>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </Animated.View>
     );
@@ -261,13 +269,13 @@ const ClinicasPorCidadeScreen = ({ route, navigation }) => {
     <View style={styles.loadingCard}>
       <Animated.View
         style={[
-          styles.loadingIcon,
+          styles.loadingIconContainer,
           {
             transform: [{ scale: pulseAnim }]
           }
         ]}
       >
-        <Ionicons name="medical" size={32} color={colors.primary} />
+        <MaterialCommunityIcons name="hospital-building" size={40} color={COLORS.primary} />
       </Animated.View>
       <Text style={styles.loadingText}>Carregando clínicas...</Text>
     </View>
@@ -276,18 +284,18 @@ const ClinicasPorCidadeScreen = ({ route, navigation }) => {
   const renderEmptyState = () => (
     <Animated.View
       style={[
-        styles.emptyContainer,
+        styles.emptyStateCard,
         {
           opacity: fadeAnim,
           transform: [{ translateY: slideAnim }]
         }
       ]}
     >
-      <View style={styles.emptyIcon}>
-        <Ionicons name="medical-outline" size={64} color={colors.textSecondary} />
+      <View style={styles.emptyIconContainer}>
+        <MaterialCommunityIcons name="magnify-close" size={48} color={COLORS.textSecondary} />
       </View>
-      <Text style={styles.emptyTitle}>Nenhuma clínica encontrada</Text>
-      <Text style={styles.emptyDescription}>
+      <Text style={styles.emptyStateText}>Nenhuma clínica encontrada</Text>
+      <Text style={styles.emptyStateSubtext}>
         Não encontramos clínicas em {cidade}.{'\n'}
         Tente buscar em outra cidade.
       </Text>
@@ -296,118 +304,78 @@ const ClinicasPorCidadeScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       
-      {/* Header com gradiente */}
-      <LinearGradient
-        colors={[colors.primary, '#0d9488']}
-        style={styles.headerGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={24} color={colors.white} />
-          </TouchableOpacity>
-          
-          <View style={styles.headerContent}>
-            <Animated.View
-              style={[
-                styles.headerIcon,
-                {
-                  transform: [{ scale: pulseAnim }]
-                }
-              ]}
-            >
-              <Ionicons name="location" size={32} color={colors.white} />
-            </Animated.View>
-            <Text style={styles.headerTitle}>Clínicas em</Text>
-            <Text style={styles.headerSubtitle}>{cidade}</Text>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation?.goBack && navigation.goBack()}>
+          <View style={styles.backButtonContainer}>
+            <Feather name="arrow-left" size={24} color={COLORS.primary} />
           </View>
-        </View>
-      </LinearGradient>
+        </TouchableOpacity>
 
-      <View style={styles.content}>
-        {/* Card de informações da cidade */}
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Clínicas em {cidade}</Text>
+        </View>
+
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Animated.View
           style={[
-            styles.cidadeCard,
+            styles.cityBanner, // Novo estilo para o banner
             {
               opacity: fadeAnim,
-              transform: [
-                { translateY: slideAnim },
-                { scale: scaleAnim }
-              ]
-            }
+              transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+            },
           ]}
         >
-          <LinearGradient
-            colors={['#ffffff', '#f8f9fa']}
-            style={styles.cidadeGradient}
-          >
-            <View style={styles.cidadeHeader}>
-              <View style={styles.cidadeIcon}>
-                <Ionicons name="location" size={28} color={colors.primary} />
-              </View>
-              <View style={styles.cidadeInfo}>
-                <Text style={styles.cidadeNome}>{cidade}</Text>
-                <Text style={styles.cidadeClinicas}>
-                  {clinicas.length} clínica{clinicas.length !== 1 ? 's' : ''} disponível{clinicas.length !== 1 ? 'is' : ''}
-                </Text>
-              </View>
-              <View style={styles.cidadeBadge}>
-                <Text style={styles.cidadeBadgeText}>Ativo</Text>
-              </View>
+          <View style={styles.cityBannerDecorative1} />
+          <View style={styles.cityBannerDecorative2} />
+
+          <View style={styles.cityBannerContent}>
+            <View style={styles.cityBannerIcon}>
+              <MaterialCommunityIcons name="city" size={48} color={COLORS.white} />
             </View>
-          </LinearGradient>
+            <View style={styles.cityBannerText}>
+              <Text style={styles.cityBannerTitle}>{cidade}</Text>
+              <Text style={styles.cityBannerSubtitle}>
+                {clinicas.length} clínica{clinicas.length !== 1 ? 's' : ''} disponível{clinicas.length !== 1 ? 'is' : ''}
+              </Text>
+            </View>
+          </View>
         </Animated.View>
 
-        {/* Lista de clínicas */}
         <View style={styles.clinicasContainer}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.resultCounter}>
+              <Text style={styles.resultCountText}>{clinicas.length}</Text>
+            </View>
+            <View>
+              <Text style={styles.sectionTitle}>
+                Resultado{clinicas.length !== 1 ? "s" : ""} encontrado
+                {clinicas.length !== 1 ? "s" : ""}
+              </Text>
+              <Text style={styles.sectionSubtitle}>Toque em uma clínica para ver detalhes</Text>
+            </View>
+          </View>
+
           {loading ? (
             renderLoadingCard()
-          ) : clinicas.length > 0 ? (
+          ) : clinicas.length === 0 ? (
+            renderEmptyState()
+          ) : (
             <FlatList
               data={clinicas}
               renderItem={renderClinica}
               keyExtractor={(item) => item.id.toString()}
               showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
               contentContainerStyle={styles.clinicasList}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
             />
-          ) : (
-            renderEmptyState()
           )}
         </View>
-
-        {/* Botão de ação flutuante */}
-        <Animated.View
-          style={[
-            styles.floatingAction,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <TouchableOpacity
-            style={styles.floatingButton}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={[colors.primary, '#0d9488']}
-              style={styles.floatingGradient}
-            >
-              <Ionicons name="arrow-back" size={20} color={colors.white} />
-              <Text style={styles.floatingText}>Voltar</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -415,150 +383,198 @@ const ClinicasPorCidadeScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  headerGradient: {
-    paddingTop: StatusBar.currentHeight || 0,
+    backgroundColor: COLORS.backgroundAlt,
   },
   header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: SPACING.paddingHorizontal,
+    paddingVertical: SPACING.lg,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   backButton: {
-    position: 'absolute',
-    top: spacing.xl,
-    left: spacing.lg,
-    zIndex: 1,
+    padding: SPACING.sm,
+    marginLeft: -SPACING.sm,
+  },
+  backButtonContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: COLORS.lightBlue,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerContent: {
-    alignItems: 'center',
-    marginTop: spacing.lg,
-  },
-  headerIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.white,
-    marginBottom: spacing.xs,
-  },
-  headerSubtitle: {
     fontSize: 20,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '600',
+    fontWeight: "800",
+    color: COLORS.textPrimary,
+    letterSpacing: -0.5,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+  scrollContent: {
+    paddingHorizontal: SPACING.paddingHorizontal,
+    paddingBottom: SPACING.xl,
   },
-  cidadeCard: {
-    marginBottom: spacing.lg,
-    borderRadius: 20,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
+  // Novo estilo para o banner da cidade
+  cityBanner: {
+    backgroundColor: COLORS.primaryDark, // Cor mais escura para diferenciar
+    borderRadius: 24,
+    padding: SPACING.xl * 1.5, // Mais padding para destaque
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.xl,
+    overflow: "hidden",
+    shadowColor: COLORS.primaryDark,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
     shadowRadius: 20,
-    elevation: 8,
+    elevation: 10,
   },
-  cidadeGradient: {
-    borderRadius: 20,
-    padding: spacing.lg,
+  cityBannerDecorative1: {
+    position: "absolute",
+    top: -60,
+    right: -60,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: COLORS.primaryLight,
+    opacity: 0.15,
   },
-  cidadeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  cityBannerDecorative2: {
+    position: "absolute",
+    bottom: -40,
+    left: -40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: COLORS.primaryLight,
+    opacity: 0.15,
   },
-  cidadeIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
+  cityBannerContent: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  cidadeInfo: {
+  cityBannerIcon: {
+    width: 80, // Ícone maior
+    height: 80,
+    borderRadius: 24,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: SPACING.lg,
+  },
+  cityBannerText: {
     flex: 1,
   },
-  cidadeNome: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
+  cityBannerTitle: {
+    fontSize: 24, // Título maior
+    fontWeight: "900",
+    color: COLORS.white,
+    marginBottom: SPACING.xs,
+    letterSpacing: -0.5,
   },
-  cidadeClinicas: {
-    fontSize: 14,
-    color: colors.textSecondary,
+  cityBannerSubtitle: {
+    fontSize: 16, // Subtítulo maior
+    color: COLORS.white,
+    opacity: 0.9,
+    fontWeight: "600",
   },
-  cidadeBadge: {
-    backgroundColor: colors.success,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 12,
-  },
-  cidadeBadgeText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.white,
-  },
+  // Fim dos novos estilos do banner
   clinicasContainer: {
     flex: 1,
   },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SPACING.lg,
+  },
+  resultCounter: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.accent,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: SPACING.md,
+  },
+  resultCountText: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: COLORS.white,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+    letterSpacing: -0.3,
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    fontWeight: "500",
+  },
   clinicasList: {
-    paddingBottom: 100,
+    paddingBottom: 20,
   },
   clinicaCard: {
-    marginBottom: spacing.md,
-    borderRadius: 20,
-    shadowColor: colors.shadow,
+    marginBottom: SPACING.xl + 4,
+    borderRadius: 24,
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 6,
+    overflow: "hidden",
+  },
+  clinicaCardContent: {
+    flex: 1,
+  },
+  cardGradientBg: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 6,
+    backgroundColor: COLORS.primary,
+  },
+  cardBody: {
+    padding: SPACING.xl + 4,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SPACING.lg,
+  },
+  cardIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: COLORS.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: SPACING.lg,
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 4,
   },
-  clinicaCardContent: {
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  clinicaGradient: {
-    padding: spacing.lg,
-  },
-  clinicaHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  clinicaIconContainer: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  clinicaInfo: {
+  cardHeaderText: {
     flex: 1,
   },
   clinicaNome: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    fontSize: 16,
+    fontWeight: "800",
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+    letterSpacing: -0.2,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -568,138 +584,106 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: spacing.xs,
+    marginRight: SPACING.xs,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
-  arrowContainer: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  chevronIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: COLORS.lightBlue,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  clinicaDetails: {
-    marginBottom: spacing.md,
+  cardDivider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginVertical: SPACING.lg,
   },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
+  cardStats: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  detailText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginLeft: spacing.sm,
+  statBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  statBadgeAddress: {
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
+    marginRight: SPACING.md,
   },
-  clinicaFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  clinicaBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 12,
-  },
-  clinicaBadgeText: {
+  statText: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.white,
-    marginLeft: spacing.xs,
+    color: COLORS.textSecondary,
+    fontWeight: "700",
+    marginLeft: SPACING.sm,
+    letterSpacing: 0.1,
   },
-  clinicaAction: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontStyle: 'italic',
-  },
-  separator: {
-    height: spacing.sm,
-  },
+
   loadingCard: {
-    backgroundColor: colors.white,
-    padding: spacing.xl,
-    borderRadius: 20,
-    alignItems: 'center',
-    shadowColor: colors.shadow,
+    backgroundColor: COLORS.white,
+    padding: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
     elevation: 4,
   },
-  loadingIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
+  loadingIconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.lightBlue,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: SPACING.xl,
   },
   loadingText: {
-    fontSize: 16,
-    color: colors.textSecondary,
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    fontWeight: "600",
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-  },
-  emptyIcon: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
-    textAlign: 'center',
-  },
-  emptyDescription: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  floatingAction: {
-    position: 'absolute',
-    bottom: spacing.xl,
-    right: spacing.lg,
-  },
-  floatingButton: {
-    borderRadius: 25,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+  emptyStateCard: {
+    backgroundColor: COLORS.white,
+    padding: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
     shadowRadius: 16,
-    elevation: 8,
+    elevation: 4,
   },
-  floatingGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: 25,
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.lightBlue,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: SPACING.xl,
   },
-  floatingText: {
+  emptyStateText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.white,
-    marginLeft: spacing.sm,
+    fontWeight: "800",
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+    letterSpacing: -0.2,
+    textAlign: 'center',
+  },
+  emptyStateSubtext: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    fontWeight: "500",
+    textAlign: 'center',
   },
 });
 

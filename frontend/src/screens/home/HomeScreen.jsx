@@ -11,9 +11,11 @@ import {
   Animated,
   StatusBar,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/auth';
+import API_CONFIG from '../../config/api';
 import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
 
@@ -32,6 +34,9 @@ const HomeScreen = () => {
   const [slideAnim] = useState(new Animated.Value(50));
   const [scaleAnim] = useState(new Animated.Value(0.8));
   const [rotateAnim] = useState(new Animated.Value(0));
+  const [agendamentosCount, setAgendamentosCount] = useState(0);
+  const [realizadosCount, setRealizadosCount] = useState(0);
+  const [loadingStats, setLoadingStats] = useState(true);
   const [menuVisible, setMenuVisible] = useState(false);
 
   const menuAnimation = useRef(new Animated.Value(0)).current;
@@ -51,6 +56,43 @@ const HomeScreen = () => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [user?.id]);
+
+  const fetchStats = async () => {
+    if (!user?.id || !user?.token) {
+      setLoadingStats(false);
+      return;
+    }
+
+    setLoadingStats(true);
+    try {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CONSULTATION}/paciente/${user.id}`;
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const agendamentos = await response.json();
+        const agendados = agendamentos.filter(a => a.status !== 'realizado' && a.status !== 'cancelado').length;
+        const realizados = agendamentos.filter(a => a.status === 'realizado').length;
+        
+        setAgendamentosCount(agendados);
+        setRealizadosCount(realizados);
+      } else {
+        console.error('Erro ao buscar estatísticas:', response.status);
+      }
+    } catch (error) {
+      console.error('Erro de rede ao buscar estatísticas:', error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -104,14 +146,15 @@ const HomeScreen = () => {
         navigation.navigate('Configuracoes');
       } 
     },
-    { 
+{ 
       title: "Suporte", 
       icon: <Feather name="headphones" size={22} color={colors.primary} />, 
       onPress: () => {
-        console.log('Suporte');
+        navigation.navigate('FaleConosco'); // Lógica de navegação aplicada
         setMenuVisible(false);
       } 
     },
+
   ];
 
   const toggleMenu = () => {
@@ -262,8 +305,8 @@ const HomeScreen = () => {
         <Animated.View style={[styles.quickInfo, { opacity: fadeAnim }]}>
           <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Suas Estatísticas</Text><View style={styles.sectionDivider} /></View>
           <View style={styles.infoCards}>
-            <View style={[styles.infoCard, { borderLeftWidth: 4, borderLeftColor: colors.primary }]}><View style={[styles.infoIconContainer, { backgroundColor: colors.primary + '15' }]}><MaterialCommunityIcons name="calendar-multiple" size={24} color={colors.primary} /></View><Text style={styles.infoNumber}>0</Text><Text style={styles.infoLabel}>Consultas Agendadas</Text></View>
-            <View style={[styles.infoCard, { borderLeftWidth: 4, borderLeftColor: '#10B981' }]}><View style={[styles.infoIconContainer, { backgroundColor: '#10B98115' }]}><MaterialCommunityIcons name="calendar-check-outline" size={24} color="#10B981" /></View><Text style={styles.infoNumber}>0</Text><Text style={styles.infoLabel}>Consultas Realizadas</Text></View>
+            <View style={[styles.infoCard, { borderLeftWidth: 4, borderLeftColor: colors.primary }]}><View style={[styles.infoIconContainer, { backgroundColor: colors.primary + '15' }]}><MaterialCommunityIcons name="calendar-multiple" size={24} color={colors.primary} /></View><Text style={styles.infoNumber}>{loadingStats ? <ActivityIndicator size="small" color={colors.primary} /> : agendamentosCount}</Text><Text style={styles.infoLabel}>Consultas Agendadas</Text></View>
+            <View style={[styles.infoCard, { borderLeftWidth: 4, borderLeftColor: '#10B981' }]}><View style={[styles.infoIconContainer, { backgroundColor: '#10B98115' }]}><MaterialCommunityIcons name="calendar-check-outline" size={24} color="#10B981" /></View><Text style={styles.infoNumber}>{loadingStats ? <ActivityIndicator size="small" color="#10B981" /> : realizadosCount}</Text><Text style={styles.infoLabel}>Consultas Realizadas</Text></View>
           </View>
         </Animated.View>
 

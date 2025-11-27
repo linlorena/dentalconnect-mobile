@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+"use client"
+
+import { useState, useEffect, useRef } from "react"
 import {
   View,
   Text,
@@ -10,34 +12,70 @@ import {
   Animated,
   Dimensions,
   StatusBar,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialIcons, Ionicons, Feather } from '@expo/vector-icons';
-import Button from '../../components/common/Button';
-import colors from '../../styles/colors';
-import spacing from '../../styles/spacing';
-import API_CONFIG from '../../config/api';
-import { useAuth } from '../../context/auth';
+  ScrollView,
+  TextInput,
+} from "react-native"
+import { MaterialCommunityIcons, Feather } from "@expo/vector-icons"
+import API_CONFIG from '../../config/api'
+import { useAuth } from '../../context/auth'
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window")
+
+const COLORS = {
+  primary: "#0F76AE",
+  primaryLight: "#3598C9",
+  primaryDark: "#0B5B87",
+  accent: "#0F76AE",
+  textPrimary: "#0F172A",
+  textSecondary: "#475569",
+  background: "#F8FAFC",
+  backgroundAlt: "#F0F4F8",
+  white: "#FFFFFF",
+  border: "#DDE1E6",
+  success: "#10B981",
+  lightBlue: "#E6F3F9",
+  lightBlueAccent: "#B3DCEF",
+  teal: "#E0F2F1",
+  purple: "#F3E5F5",
+}
+
+const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  paddingHorizontal: 16,
+}
+
+const MOCK_CITIES = [] // Removendo o mock de cidades
 
 const AgendarConsultaScreen = ({ navigation }) => {
-  const [opcaoSelecionada, setOpcaoSelecionada] = useState('clinica');
-  const [locais, setLocais] = useState([]);
-  const [cidades, setCidades] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
-  
+  const [locais, setLocais] = useState([]) // Novo estado para locais
+  const [cidades, setCidades] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [searchText, setSearchText] = useState("")
+  const [filteredCidades, setFilteredCidades] = useState([])
+  const { user } = useAuth() // Importando useAuth
+
   // Animações
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const slideAnim = useRef(new Animated.Value(50)).current
+  const scaleAnim = useRef(new Animated.Value(0.9)).current
 
   useEffect(() => {
-    carregarDados();
-    iniciarAnimacoes();
-  }, []);
+    carregarDados()
+    iniciarAnimacoes()
+  }, [])
+
+  useEffect(() => {
+    if (searchText.trim() === "") {
+      setFilteredCidades(cidades)
+    } else {
+      const filtered = cidades.filter((cidade) => cidade.toLowerCase().includes(searchText.toLowerCase()))
+      setFilteredCidades(filtered)
+    }
+  }, [searchText, cidades])
 
   const iniciarAnimacoes = () => {
     Animated.parallel([
@@ -57,47 +95,29 @@ const AgendarConsultaScreen = ({ navigation }) => {
         friction: 8,
         useNativeDriver: true,
       }),
-    ]).start();
-
-    // Animação de pulso contínua
-    const pulseAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    pulseAnimation.start();
-  };
+    ]).start()
+  }
 
   const carregarDados = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const responseLocais = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LOCALS}`);
+      const responseLocais = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LOCALS}`)
       if (responseLocais.ok) {
-        const locaisData = await responseLocais.json();
-        setLocais(locaisData);
+        const locaisData = await responseLocais.json()
+        setLocais(locaisData)
         
-        const cidadesUnicas = [...new Set(locaisData.map(local => local.cidade))];
-        setCidades(cidadesUnicas);
+        const cidadesUnicas = [...new Set(locaisData.map(local => local.cidade))]
+        setCidades(cidadesUnicas)
       }
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os dados. Tente novamente.');
+      console.error("Erro ao carregar dados:", error)
+      Alert.alert("Erro", "Não foi possível carregar os dados. Tente novamente.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleCidadeSelecionada = (cidade) => {
-    // Animação de feedback
     Animated.sequence([
       Animated.timing(scaleAnim, {
         toValue: 0.95,
@@ -109,450 +129,531 @@ const AgendarConsultaScreen = ({ navigation }) => {
         duration: 100,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]).start()
 
     setTimeout(() => {
-      navigation.navigate('ClinicasPorCidade', { cidade });
-    }, 200);
-  };
+      if (navigation?.navigate) {
+        navigation.navigate("ClinicasPorCidade", { cidade })
+      }
+    }, 200)
+  }
+
+  const handleClearSearch = () => {
+    setSearchText("")
+  }
 
   const renderCidade = ({ item, index }) => {
-    const clinicasCount = locais.filter(local => local.cidade === item).length;
-    
+    const clinicasCount = locais.filter(local => local.cidade === item).length
+
     return (
       <Animated.View
         style={[
           styles.cidadeCard,
           {
             opacity: fadeAnim,
-            transform: [
-              { translateY: slideAnim },
-              { scale: scaleAnim }
-            ]
-          }
+            transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+          },
         ]}
       >
         <TouchableOpacity
           style={styles.cidadeCardContent}
           onPress={() => handleCidadeSelecionada(item)}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
-          <LinearGradient
-            colors={['#ffffff', '#f8f9fa']}
-            style={styles.cidadeGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.cidadeHeader}>
-              <View style={styles.cidadeIconContainer}>
-                <Ionicons name="location" size={24} color={colors.primary} />
+          <View style={styles.cardGradientBg} />
+
+          <View style={styles.cardBody}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardIconContainer}>
+                <MaterialCommunityIcons name="map-marker-outline" size={24} color={COLORS.white} />
               </View>
-              <View style={styles.cidadeInfo}>
+              <View style={styles.cardHeaderText}>
                 <Text style={styles.cidadeNome}>{item}</Text>
                 <Text style={styles.cidadeClinicas}>
-                  {clinicasCount} clínica{clinicasCount !== 1 ? 's' : ''} disponível{clinicasCount !== 1 ? 'is' : ''}
+                  {clinicasCount} clínica{clinicasCount !== 1 ? "s" : ""}
                 </Text>
               </View>
-              <View style={styles.arrowContainer}>
-                <Ionicons name="chevron-forward" size={20} color={colors.primary} />
+              <View style={styles.chevronIcon}>
+                <Feather name="arrow-right" size={20} color={COLORS.primary} />
               </View>
             </View>
-            
-            <View style={styles.cidadeFooter}>
-              <View style={styles.cidadeBadge}>
-                <Ionicons name="medical" size={14} color={colors.white} />
-                <Text style={styles.cidadeBadgeText}>Clínicas</Text>
+
+            <View style={styles.cardDivider} />
+
+            <View style={styles.cardStats}>
+              <View style={styles.statBadge}>
+                <MaterialCommunityIcons name="hospital-building" size={16} color={COLORS.primary} />
+                <Text style={styles.statText}>Clínicas disponíveis</Text>
               </View>
-              <Text style={styles.cidadeAction}>Toque para ver</Text>
+              <View style={styles.statCounter}><Text style={styles.statCounterText}>{clinicasCount}</Text></View>
             </View>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </Animated.View>
-    );
-  };
+    )
+  }
 
   const renderLoadingCard = () => (
     <View style={styles.loadingCard}>
-      <Animated.View
-        style={[
-          styles.loadingIcon,
-          {
-            transform: [{ scale: pulseAnim }]
-          }
-        ]}
-      >
-        <Ionicons name="medical" size={32} color={colors.primary} />
-      </Animated.View>
-      <Text style={styles.loadingText}>Carregando cidades...</Text>
+      <View style={styles.loadingIconContainer}>
+        <MaterialCommunityIcons name="hospital-building" size={40} color={COLORS.primary} />
+      </View>
+      <Text style={styles.loadingText}>Buscando cidades...</Text>
     </View>
-  );
+  )
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyStateCard}>
+      <View style={styles.emptyIconContainer}>
+        <MaterialCommunityIcons name="magnify-close" size={48} color={COLORS.textSecondary} />
+      </View>
+      <Text style={styles.emptyStateText}>Nenhuma cidade encontrada</Text>
+      <Text style={styles.emptyStateSubtext}>Tente ajustar sua busca</Text>
+    </View>
+  )
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-      
-      {/* Header com gradiente */}
-      <LinearGradient
-        colors={[colors.primary, '#0d9488']}
-        style={styles.headerGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={24} color={colors.white} />
-          </TouchableOpacity>
-          
-          <View style={styles.headerContent}>
-            <Animated.View
-              style={[
-                styles.headerIcon,
-                {
-                  transform: [{ scale: pulseAnim }]
-                }
-              ]}
-            >
-              <Ionicons name="calendar" size={32} color={colors.white} />
-            </Animated.View>
-            <Text style={styles.headerTitle}>Agendar Avaliação</Text>
-            <Text style={styles.headerSubtitle}>
-              Encontre clínicas próximas a você
-            </Text>
-          </View>
-        </View>
-      </LinearGradient>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
 
-      <View style={styles.content}>
-        {/* Card de seleção */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation?.goBack && navigation.goBack()}>
+          <View style={styles.backButtonContainer}>
+            <Feather name="arrow-left" size={24} color={COLORS.primary} />
+          </View>
+        </TouchableOpacity>
+
+        <View style={styles.headerContent}>
+        
+          <Text style={styles.headerTitle}>Agendar Consulta</Text>
+        </View>
+
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Animated.View
           style={[
-            styles.selectionCard,
+            styles.welcomeBanner,
             {
               opacity: fadeAnim,
-              transform: [
-                { translateY: slideAnim },
-                { scale: scaleAnim }
-              ]
-            }
+              transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+            },
           ]}
         >
-          <LinearGradient
-            colors={['#ffffff', '#f8f9fa']}
-            style={styles.selectionGradient}
-          >
-            <View style={styles.selectionHeader}>
-              <View style={styles.selectionIcon}>
-                <Ionicons name="location" size={28} color={colors.primary} />
-              </View>
-              <View style={styles.selectionInfo}>
-                <Text style={styles.selectionTitle}>Por Localização</Text>
-                <Text style={styles.selectionDescription}>
-                  Escolha sua cidade e encontre clínicas próximas
-                </Text>
-              </View>
-              <View style={styles.selectionBadge}>
-                <Text style={styles.selectionBadgeText}>Ativo</Text>
-              </View>
+          <View style={styles.bannerDecorative1} />
+          <View style={styles.bannerDecorative2} />
+
+          <View style={styles.bannerContent}>
+            <View style={styles.bannerIcon}>
+              <MaterialCommunityIcons name="hospital-box" size={36} color={COLORS.white} />
             </View>
-          </LinearGradient>
+            <View style={styles.bannerText}>
+              <Text style={styles.bannerTitle}>Encontre Clínicas</Text>
+              <Text style={styles.bannerSubtitle}>Escolha sua cidade e agende sua consulta agora</Text>
+            </View>
+          </View>
         </Animated.View>
 
-        {/* Lista de cidades */}
-        <View style={styles.cidadesContainer}>
-          <Text style={styles.cidadesTitle}>
-            {cidades.length} cidade{cidades.length !== 1 ? 's' : ''} disponível{cidades.length !== 1 ? 'is' : ''}
-          </Text>
-          
+        <View style={styles.searchSection}>
+          <View style={styles.searchLabel}>
+            <Text style={styles.searchLabelText}>Buscar cidade</Text>
+          </View>
+          <View style={styles.searchInputContainer}>
+            <Feather name="search" size={20} color={COLORS.primary} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Digite o nome da cidade..."
+              placeholderTextColor={COLORS.textSecondary}
+              value={searchText}
+              onChangeText={setSearchText}
+            />
+            {searchText !== "" && (
+              <TouchableOpacity onPress={handleClearSearch} style={styles.clearButton}>
+                <Feather name="x-circle" size={20} color={COLORS.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.citiesSection}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.resultCounter}>
+              <Text style={styles.resultCountText}>{filteredCidades.length}</Text>
+            </View>
+            <View>
+              <Text style={styles.sectionTitle}>
+                Resultado{filteredCidades.length !== 1 ? "s" : ""} encontrado
+                {filteredCidades.length !== 1 ? "s" : ""}
+              </Text>
+              <Text style={styles.sectionSubtitle}>Toque em uma cidade para ver clínicas</Text>
+            </View>
+          </View>
+
           {loading ? (
             renderLoadingCard()
+          ) : filteredCidades.length === 0 ? (
+            renderEmptyState()
           ) : (
             <FlatList
-              data={cidades}
+              data={filteredCidades}
               renderItem={renderCidade}
               keyExtractor={(item) => item}
               showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
               contentContainerStyle={styles.cidadesList}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
             />
           )}
         </View>
-
-        {/* Botão de ação flutuante */}
-        <Animated.View
-          style={[
-            styles.floatingAction,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <TouchableOpacity
-            style={styles.floatingButton}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={[colors.primary, '#0d9488']}
-              style={styles.floatingGradient}
-            >
-              <Ionicons name="arrow-back" size={20} color={colors.white} />
-              <Text style={styles.floatingText}>Voltar</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </Animated.View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  headerGradient: {
-    paddingTop: StatusBar.currentHeight || 0,
+    backgroundColor: COLORS.backgroundAlt,
   },
   header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: SPACING.paddingHorizontal,
+    paddingVertical: SPACING.lg,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   backButton: {
-    position: 'absolute',
-    top: spacing.xl,
-    left: spacing.lg,
-    zIndex: 1,
+    padding: SPACING.sm,
+    marginLeft: -SPACING.sm,
+  },
+  backButtonContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: COLORS.lightBlue,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerContent: {
-    alignItems: 'center',
-    marginTop: spacing.lg,
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: COLORS.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: SPACING.sm,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: colors.white,
-    marginBottom: spacing.xs,
+    fontSize: 20,
+    fontWeight: "800",
+    color: COLORS.textPrimary,
+    letterSpacing: -0.5,
   },
-  headerSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
+  scrollContent: {
+    paddingHorizontal: SPACING.paddingHorizontal,
+    paddingBottom: SPACING.xl,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-  },
-  selectionCard: {
-    marginBottom: spacing.lg,
-    borderRadius: 20,
-    shadowColor: colors.shadow,
+  welcomeBanner: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 24,
+    padding: SPACING.xl,
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.xl,
+    overflow: "hidden",
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  selectionGradient: {
-    borderRadius: 20,
-    padding: spacing.lg,
-  },
-  selectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  selectionIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  selectionInfo: {
-    flex: 1,
-  },
-  selectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  selectionDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
-  },
-  selectionBadge: {
-    backgroundColor: colors.success,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 12,
-  },
-  selectionBadgeText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.white,
-  },
-  cidadesContainer: {
-    flex: 1,
-  },
-  cidadesTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
-  },
-  cidadesList: {
-    paddingBottom: 100,
-  },
-  cidadeCard: {
-    marginBottom: spacing.md,
-    borderRadius: 20,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  cidadeCardContent: {
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  cidadeGradient: {
-    padding: spacing.lg,
-  },
-  cidadeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  cidadeIconContainer: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  cidadeInfo: {
-    flex: 1,
-  },
-  cidadeNome: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  cidadeClinicas: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  arrowContainer: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cidadeFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  cidadeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 12,
-  },
-  cidadeBadgeText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.white,
-    marginLeft: spacing.xs,
-  },
-  cidadeAction: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontStyle: 'italic',
-  },
-  separator: {
-    height: spacing.sm,
-  },
-  loadingCard: {
-    backgroundColor: colors.white,
-    padding: spacing.xl,
-    borderRadius: 20,
-    alignItems: 'center',
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  loadingIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: colors.textSecondary,
-  },
-  floatingAction: {
-    position: 'absolute',
-    bottom: spacing.xl,
-    right: spacing.lg,
-  },
-  floatingButton: {
-    borderRadius: 25,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 8,
   },
-  floatingGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: 25,
+  bannerDecorative1: {
+    position: "absolute",
+    top: -50,
+    right: -50,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: COLORS.primaryLight,
+    opacity: 0.1,
   },
-  floatingText: {
+  bannerDecorative2: {
+    position: "absolute",
+    bottom: -30,
+    left: -30,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.primaryLight,
+    opacity: 0.1,
+  },
+  bannerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  bannerIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 18,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: SPACING.lg,
+  },
+  bannerText: {
+    flex: 1,
+  },
+  bannerTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: COLORS.white,
+    marginBottom: SPACING.xs,
+    letterSpacing: -0.5,
+  },
+  bannerSubtitle: {
+    fontSize: 14,
+    color: COLORS.white,
+    opacity: 0.8,
+  },
+  searchSection: {
+    marginBottom: SPACING.xl,
+  },
+  searchLabel: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SPACING.sm,
+  },
+  searchLabelText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.primary,
+    marginLeft: SPACING.xs,
+  },
+  searchInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    paddingHorizontal: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchIcon: {
+    marginRight: SPACING.sm,
+  },
+  searchInput: {
+    flex: 1,
+    height: 50,
     fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.white,
-    marginLeft: spacing.sm,
+    color: COLORS.textPrimary,
   },
-});
+  clearButton: {
+    padding: SPACING.sm,
+  },
+  citiesSection: {
+    flex: 1,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SPACING.lg,
+  },
+  resultCounter: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.accent,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: SPACING.md,
+  },
+  resultCountText: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: COLORS.white,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+    letterSpacing: -0.3,
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    fontWeight: "500",
+  },
+  cidadesList: {
+    paddingBottom: 20,
+  },
+  cidadeCard: {
+    marginBottom: SPACING.xl + 4,
+    borderRadius: 24,
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 6,
+    overflow: "hidden",
+  },
+  cidadeCardContent: {
+    flex: 1,
+  },
+  cardGradientBg: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 6,
+    backgroundColor: COLORS.primary,
+  },
+  cardBody: {
+    padding: SPACING.xl + 4,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SPACING.lg,
+  },
+  cardIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: COLORS.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: SPACING.lg,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  cardHeaderText: {
+    flex: 1,
+  },
+  cidadeNome: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+    letterSpacing: -0.2,
+  },
+  cidadeClinicas: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    fontWeight: "600",
+  },
+  chevronIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: COLORS.lightBlue,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardDivider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginVertical: SPACING.lg,
+  },
+  cardStats: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  statBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  statText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontWeight: "700",
+    marginLeft: SPACING.sm,
+    letterSpacing: 0.1,
+  },
+  statCounter: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: 8,
+    backgroundColor: COLORS.lightBlue,
+  },
+  statCounterText: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: COLORS.primary,
+  },
+  loadingCard: {
+    backgroundColor: COLORS.white,
+    padding: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  loadingIconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.lightBlue,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: SPACING.xl,
+  },
+  loadingText: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    fontWeight: "600",
+  },
+  emptyStateCard: {
+    backgroundColor: COLORS.white,
+    padding: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.lightBlue,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: SPACING.xl,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+    letterSpacing: -0.2,
+  },
+  emptyStateSubtext: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    fontWeight: "500",
+  },
+})
 
-export default AgendarConsultaScreen;
+export default AgendarConsultaScreen
