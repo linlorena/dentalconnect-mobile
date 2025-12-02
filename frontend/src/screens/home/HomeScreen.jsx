@@ -10,14 +10,17 @@ import {
   Dimensions,
   Animated,
   StatusBar,
-  FlatList,
+  ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/auth';
+import API_CONFIG from '../../config/api';
 import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
 
 const { width } = Dimensions.get('window');
+const bannerPlaceholder = require('../../../assets/bannerhome.png');
 
 const getFirstName = (fullName) => {
   if (!fullName) return 'Usuário';
@@ -32,9 +35,17 @@ const HomeScreen = () => {
   const [slideAnim] = useState(new Animated.Value(50));
   const [scaleAnim] = useState(new Animated.Value(0.8));
   const [rotateAnim] = useState(new Animated.Value(0));
+  const [agendamentosCount, setAgendamentosCount] = useState(0);
+  const [realizadosCount, setRealizadosCount] = useState(0);
+  const [loadingStats, setLoadingStats] = useState(true);
   const [menuVisible, setMenuVisible] = useState(false);
 
   const menuAnimation = useRef(new Animated.Value(0)).current;
+  const resolvedBannerAsset = Image.resolveAssetSource(bannerPlaceholder);
+  const bannerWidth = width - spacing.paddingHorizontal * 2;
+  const bannerHeight = resolvedBannerAsset && resolvedBannerAsset.width && resolvedBannerAsset.height
+    ? Math.round(bannerWidth * resolvedBannerAsset.height / resolvedBannerAsset.width)
+    : Math.round(bannerWidth * 0.42);
 
   useEffect(() => {
     Animated.parallel([
@@ -51,6 +62,43 @@ const HomeScreen = () => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [user?.id]);
+
+  const fetchStats = async () => {
+    if (!user?.id || !user?.token) {
+      setLoadingStats(false);
+      return;
+    }
+
+    setLoadingStats(true);
+    try {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CONSULTATION}/paciente/${user.id}`;
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const agendamentos = await response.json();
+        const agendados = agendamentos.filter(a => a.status !== 'realizado' && a.status !== 'cancelado').length;
+        const realizados = agendamentos.filter(a => a.status === 'realizado').length;
+        
+        setAgendamentosCount(agendados);
+        setRealizadosCount(realizados);
+      } else {
+        console.error('Erro ao buscar estatísticas:', response.status);
+      }
+    } catch (error) {
+      console.error('Erro de rede ao buscar estatísticas:', error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -104,14 +152,15 @@ const HomeScreen = () => {
         navigation.navigate('Configuracoes');
       } 
     },
-    { 
+{ 
       title: "Suporte", 
       icon: <Feather name="headphones" size={22} color={colors.primary} />, 
       onPress: () => {
-        console.log('Suporte');
+        navigation.navigate('FaleConosco'); // Lógica de navegação aplicada
         setMenuVisible(false);
       } 
     },
+
   ];
 
   const toggleMenu = () => {
@@ -168,7 +217,6 @@ const HomeScreen = () => {
                 <View style={styles.greetingContainer}><Text style={styles.greeting}>{getGreeting()}! 👋</Text></View>
                 <Text style={styles.userName}>{getFirstName(user?.nome)}</Text>
                 <Text style={styles.subtitle}>Bem-vindo ao DentalConnect</Text>
-                <View style={styles.timeContainer}><Feather name="clock" size={12} color={colors.background} style={{ marginRight: 4 }} /><Text style={styles.timeText}>{currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Text></View>
               </View>
               <Animated.View style={[styles.logoContainerAnimated, { transform: [{ scale: scaleAnim }] }]}>
                 <View style={styles.logoGlow} /><MaterialCommunityIcons name="tooth-outline" size={42} color={colors.primary} style={styles.logoIcon} />
@@ -257,13 +305,22 @@ const HomeScreen = () => {
               </View>
             </TouchableOpacity>
           </View>
+          <View style={styles.bannerContainer}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('AgendarConsulta')}
+              style={[styles.bannerWrapper, { width: bannerWidth, height: bannerHeight }]}
+            >
+              <Image source={bannerPlaceholder} style={[styles.bannerImage, { width: bannerWidth, height: bannerHeight }]} resizeMode="contain" />
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
         <Animated.View style={[styles.quickInfo, { opacity: fadeAnim }]}>
           <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Suas Estatísticas</Text><View style={styles.sectionDivider} /></View>
           <View style={styles.infoCards}>
-            <View style={[styles.infoCard, { borderLeftWidth: 4, borderLeftColor: colors.primary }]}><View style={[styles.infoIconContainer, { backgroundColor: colors.primary + '15' }]}><MaterialCommunityIcons name="calendar-multiple" size={24} color={colors.primary} /></View><Text style={styles.infoNumber}>0</Text><Text style={styles.infoLabel}>Consultas Agendadas</Text></View>
-            <View style={[styles.infoCard, { borderLeftWidth: 4, borderLeftColor: '#10B981' }]}><View style={[styles.infoIconContainer, { backgroundColor: '#10B98115' }]}><MaterialCommunityIcons name="calendar-check-outline" size={24} color="#10B981" /></View><Text style={styles.infoNumber}>0</Text><Text style={styles.infoLabel}>Consultas Realizadas</Text></View>
+            <View style={[styles.infoCard, { borderLeftWidth: 4, borderLeftColor: colors.primary }]}><View style={[styles.infoIconContainer, { backgroundColor: colors.primary + '15' }]}><MaterialCommunityIcons name="calendar-multiple" size={24} color={colors.primary} /></View><Text style={styles.infoNumber}>{loadingStats ? <ActivityIndicator size="small" color={colors.primary} /> : agendamentosCount}</Text><Text style={styles.infoLabel}>Consultas Agendadas</Text></View>
+            <View style={[styles.infoCard, { borderLeftWidth: 4, borderLeftColor: '#10B981' }]}><View style={[styles.infoIconContainer, { backgroundColor: '#10B98115' }]}><MaterialCommunityIcons name="calendar-check-outline" size={24} color="#10B981" /></View><Text style={styles.infoNumber}>{loadingStats ? <ActivityIndicator size="small" color="#10B981" /> : realizadosCount}</Text><Text style={styles.infoLabel}>Consultas Realizadas</Text></View>
           </View>
         </Animated.View>
 
@@ -466,6 +523,24 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     marginBottom: 20
+  },
+  bannerContainer: {
+    paddingHorizontal: spacing.paddingHorizontal,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  bannerWrapper: {
+    width: width - spacing.paddingHorizontal * 2,
+    borderRadius: 18,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerImage: {
+    width: width - spacing.paddingHorizontal * 2,
+    height: Math.round((width - spacing.paddingHorizontal * 2) * 0.42),
+    borderRadius: 18,
+    overflow: 'hidden'
   },
   sectionTitle: {
     fontSize: 22,

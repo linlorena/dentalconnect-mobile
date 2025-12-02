@@ -12,13 +12,37 @@ import {
   StatusBar,
   Linking,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialIcons, Ionicons, Feather } from '@expo/vector-icons';
-import Button from '../../components/common/Button';
-import colors from '../../styles/colors';
-import spacing from '../../styles/spacing';
+import { MaterialCommunityIcons, Feather, Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
+
+const COLORS = {
+  primary: "#0F76AE",
+  primaryLight: "#3598C9",
+  primaryDark: "#0B5B87",
+  accent: "#0F76AE",
+  textPrimary: "#0F172A",
+  textSecondary: "#475569",
+  background: "#F8FAFC",
+  backgroundAlt: "#F0F4F8",
+  white: "#FFFFFF",
+  border: "#DDE1E6",
+  success: "#10B981",
+  lightBlue: "#E6F3F9",
+  lightBlueAccent: "#B3DCEF",
+  teal: "#E0F2F1",
+  purple: "#F3E5F5",
+  error: "#EF4444",
+}
+
+const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  paddingHorizontal: 16,
+}
 
 const DetalhesLocalScreen = ({ route, navigation }) => {
   const { local } = route.params;
@@ -174,13 +198,11 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
         disabled={!onPress}
         activeOpacity={onPress ? 0.7 : 1}
       >
-        <LinearGradient
-          colors={['#ffffff', '#f8f9fa']}
-          style={styles.infoGradient}
-        >
+        <View style={styles.cardGradientBg} />
+        <View style={styles.infoBody}>
           <View style={styles.infoHeader}>
             <View style={styles.infoIcon}>
-              <Ionicons name={icon} size={24} color={colors.primary} />
+              <Ionicons name={icon} size={24} color={COLORS.primary} />
             </View>
             <View style={styles.infoText}>
               <Text style={styles.infoLabel}>{label}</Text>
@@ -189,12 +211,12 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
               </Text>
             </View>
             {onPress && (
-              <View style={styles.infoAction}>
-                <Ionicons name="chevron-forward" size={20} color={colors.primary} />
+              <View style={styles.chevronIcon}>
+                <Feather name="arrow-right" size={20} color={COLORS.primary} />
               </View>
             )}
           </View>
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -210,51 +232,30 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
         }
       ]}
     >
-      <LinearGradient
-        colors={[colors.primary, '#0d9488']}
-        style={styles.serviceTagGradient}
-      >
-        <Ionicons name="medical" size={16} color={colors.white} />
+      <View style={styles.serviceTagContent}>
+        <MaterialCommunityIcons name="tooth-outline" size={16} color={COLORS.primary} />
         <Text style={styles.serviceTagText}>{servico}</Text>
-      </LinearGradient>
+      </View>
     </Animated.View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       
-      {/* Header com gradiente */}
-      <LinearGradient
-        colors={[colors.primary, '#0d9488']}
-        style={styles.headerGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={24} color={colors.white} />
-          </TouchableOpacity>
-          
-          <View style={styles.headerContent}>
-            <Animated.View
-              style={[
-                styles.headerIcon,
-                {
-                  transform: [{ scale: pulseAnim }]
-                }
-              ]}
-            >
-              <Ionicons name="medical" size={32} color={colors.white} />
-            </Animated.View>
-            <Text style={styles.headerTitle}>{local.nome}</Text>
-            <Text style={styles.headerSubtitle}>{local.cidade}</Text>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation?.goBack && navigation.goBack()}>
+          <View style={styles.backButtonContainer}>
+            <Feather name="arrow-left" size={24} color={COLORS.primary} />
           </View>
+        </TouchableOpacity>
+
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Detalhes da Clínica</Text>
         </View>
-      </LinearGradient>
+
+        <View style={{ width: 40 }} />
+      </View>
 
       <ScrollView 
         style={styles.scrollView}
@@ -262,6 +263,41 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
+          {/* Banner Único para Detalhes da Clínica */}
+          <Animated.View
+            style={[
+              styles.clinicDetailBanner,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+              },
+            ]}
+          >
+            <View style={styles.bannerDecorative1} />
+            <View style={styles.bannerDecorative2} />
+
+            <View style={styles.bannerContent}>
+              <View style={styles.bannerIcon}>
+                <MaterialCommunityIcons name="hospital-box" size={48} color={COLORS.white} />
+              </View>
+              <View style={styles.bannerText}>
+                <Text style={styles.bannerTitle}>{local.nome}</Text>
+                <View style={styles.statusContainer}>
+                  <View style={[
+                    styles.statusDot, 
+                    { backgroundColor: statusClinica.aberto ? COLORS.success : COLORS.error }
+                  ]} />
+                  <Text style={[
+                    styles.statusText,
+                    { color: COLORS.white } // Cor do texto do status branca para contraste no banner escuro
+                  ]}>
+                    {statusClinica.texto}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+
           {/* Card de informações principais */}
           <Animated.View
             style={[
@@ -275,42 +311,20 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
               }
             ]}
           >
-            <LinearGradient
-              colors={['#ffffff', '#f8f9fa']}
-              style={styles.mainGradient}
-            >
-              <View style={styles.mainHeader}>
-                <View style={styles.statusContainer}>
-                  <View style={[
-                    styles.statusDot, 
-                    !statusClinica.aberto && styles.statusDotFechado
-                  ]} />
-                  <Text style={[
-                    styles.statusText,
-                    !statusClinica.aberto && styles.statusTextFechado
-                  ]}>
-                    {statusClinica.texto}
-                  </Text>
-                </View>
-                <View style={styles.ratingContainer}>
-                  <Ionicons name="star" size={16} color="#FFD700" />
-                  <Text style={styles.ratingText}>4.8</Text>
-                </View>
-              </View>
-              
+            <View style={styles.mainCardBody}>
               <Text style={styles.mainDescription}>
                 Clínica odontológica moderna com equipamentos de última geração e profissionais especializados.
               </Text>
-            </LinearGradient>
+            </View>
           </Animated.View>
 
           {/* Informações de contato */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Informações de Contato</Text>
-            {renderInfoCard('location', 'Endereço', local.endereco, handleDirections)}
-            {renderInfoCard('call', 'Telefone', local.telefone, handleCall)}
-            {renderInfoCard('time', 'Horário', local.horario || 'Seg-Sex: 8h-18h')}
-            {renderInfoCard('mail', 'Email', local.email)}
+            {renderInfoCard('location-outline', 'Endereço', local.endereco, handleDirections)}
+            {renderInfoCard('call-outline', 'Telefone', local.telefone, handleCall)}
+            {renderInfoCard('time-outline', 'Horário', local.horario || 'Seg-Sex: 8h-18h')}
+            {renderInfoCard('mail-outline', 'Email', local.email)}
           </View>
 
           {/* Serviços oferecidos */}
@@ -326,82 +340,26 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
                   }
                 ]}
               >
-                <LinearGradient
-                  colors={['#ffffff', '#f8f9fa']}
-                  style={styles.servicesGradient}
-                >
-                  <View style={styles.servicesGrid}>
-                    {local.servicos.map((servico, index) => renderServiceTag(servico, index))}
-                  </View>
-                </LinearGradient>
+                <View style={styles.servicesGrid}>
+                  {local.servicos.map(renderServiceTag)}
+                </View>
               </Animated.View>
             </View>
           )}
 
-          {/* Sobre a clínica */}
-          {local.descricao && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Sobre a Clínica</Text>
-              <Animated.View
-                style={[
-                  styles.descriptionCard,
-                  {
-                    opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }]
-                  }
-                ]}
-              >
-                <LinearGradient
-                  colors={['#ffffff', '#f8f9fa']}
-                  style={styles.descriptionGradient}
-                >
-                  <Text style={styles.descriptionText}>{local.descricao}</Text>
-                </LinearGradient>
-              </Animated.View>
-            </View>
-          )}
-
-          {/* Botões de ação */}
-          <Animated.View
-            style={[
-              styles.actionsContainer,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }]
-              }
-            ]}
-          >
+          {/* Botão de Ação */}
+          <View style={styles.actionsContainer}>
             <TouchableOpacity
               style={styles.primaryButton}
-              onPress={() => navigation.navigate('SelecionarHorario', { 
-                clinicaId: local.id,
-                nomeDaClinica: local.nome, 
-              })}
+              onPress={handleAgendarConsulta}
               activeOpacity={0.8}
             >
-              <LinearGradient
-                colors={[colors.primary, '#0d9488']}
-                style={styles.primaryButtonGradient}
-              >
-                <Ionicons name="calendar" size={20} color={colors.white} />
-                <Text style={styles.primaryButtonText}>Agendar Avaliação</Text>
-              </LinearGradient>
+              <View style={styles.primaryButtonContent}>
+                <MaterialCommunityIcons name="calendar-check" size={24} color={COLORS.white} />
+                <Text style={styles.primaryButtonText}>Agendar Consulta</Text>
+              </View>
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => navigation.goBack()}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={['#ffffff', '#f8f9fa']}
-                style={styles.secondaryButtonGradient}
-              >
-                <Ionicons name="arrow-back" size={20} color={colors.primary} />
-                <Text style={styles.secondaryButtonText}>Voltar</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </Animated.View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -411,281 +369,284 @@ const DetalhesLocalScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  headerGradient: {
-    paddingTop: StatusBar.currentHeight || 0,
+    backgroundColor: COLORS.backgroundAlt,
   },
   header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: SPACING.paddingHorizontal,
+    paddingVertical: SPACING.lg,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   backButton: {
-    position: 'absolute',
-    top: spacing.xl,
-    left: spacing.lg,
-    zIndex: 1,
+    padding: SPACING.sm,
+    marginLeft: -SPACING.sm,
+  },
+  backButtonContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: COLORS.lightBlue,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerContent: {
-    alignItems: 'center',
-    marginTop: spacing.lg,
-  },
-  headerIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.white,
-    marginBottom: spacing.xs,
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: "800",
+    color: COLORS.textPrimary,
+    letterSpacing: -0.5,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: spacing.xl,
+    paddingHorizontal: SPACING.paddingHorizontal,
+    paddingBottom: SPACING.xl * 2,
   },
   content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    flex: 1,
   },
-  mainCard: {
-    marginBottom: spacing.lg,
-    borderRadius: 20,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 8,
+  // Banner Único para Detalhes da Clínica
+  clinicDetailBanner: {
+    backgroundColor: COLORS.primaryDark, // Cor mais escura para um visual mais premium
+    borderRadius: 24,
+    padding: SPACING.xl * 1.5,
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.xl,
+    overflow: "hidden",
+    shadowColor: COLORS.primaryDark,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.4,
+    shadowRadius: 25,
+    elevation: 12,
   },
-  mainGradient: {
-    borderRadius: 20,
-    padding: spacing.lg,
+  bannerDecorative1: {
+    position: "absolute",
+    top: -80,
+    right: -80,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: COLORS.primaryLight,
+    opacity: 0.1,
   },
-  mainHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
+  bannerDecorative2: {
+    position: "absolute",
+    bottom: -50,
+    left: -50,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: COLORS.primaryLight,
+    opacity: 0.1,
+  },
+  bannerContent: {
+    flexDirection: "column", // Alinhamento vertical para mais personalidade
+    alignItems: "flex-start",
+  },
+  bannerIcon: {
+    width: 90, // Ícone ainda maior
+    height: 90,
+    borderRadius: 28,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: SPACING.lg,
+  },
+  bannerText: {
+    flex: 1,
+  },
+  bannerTitle: {
+    fontSize: 28, // Título ainda maior
+    fontWeight: "900",
+    color: COLORS.white,
+    marginBottom: SPACING.xs,
+    letterSpacing: -0.5,
   },
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: SPACING.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: 10,
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.success,
-    marginRight: spacing.xs,
-  },
-  statusDotFechado: {
-    backgroundColor: colors.error || '#EF4444',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: SPACING.sm,
   },
   statusText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.success,
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.white,
   },
-  statusTextFechado: {
-    color: colors.error || '#EF4444',
+  // Fim do Banner
+
+  mainCard: {
+    marginBottom: SPACING.xl,
+    borderRadius: 24,
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.textPrimary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 4,
   },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 12,
-  },
-  ratingText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#FFD700',
-    marginLeft: spacing.xs,
+  mainCardBody: {
+    padding: SPACING.xl,
   },
   mainDescription: {
     fontSize: 16,
-    color: colors.textSecondary,
+    color: COLORS.textSecondary,
     lineHeight: 24,
   },
+
   section: {
-    marginBottom: spacing.lg,
+    marginBottom: SPACING.xl,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.lg,
+    letterSpacing: -0.3,
   },
+
+  // Info Card (Endereço, Telefone, etc.)
   infoCard: {
-    marginBottom: spacing.md,
-    borderRadius: 15,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
+    marginBottom: SPACING.md,
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    overflow: "hidden",
   },
   infoCardContent: {
-    borderRadius: 15,
-    overflow: 'hidden',
+    flex: 1,
   },
-  infoGradient: {
-    padding: spacing.md,
+  cardGradientBg: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: COLORS.lightBlueAccent,
+  },
+  infoBody: {
+    padding: SPACING.lg,
   },
   infoHeader: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   infoIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: COLORS.lightBlue,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.md,
+    marginRight: SPACING.md,
   },
   infoText: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.xs,
   },
   infoValue: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
   },
-  infoAction: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(15, 118, 110, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  chevronIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.lightBlue,
+    justifyContent: "center",
+    alignItems: "center",
   },
+
+  // Serviços
   servicesCard: {
-    borderRadius: 15,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  servicesGradient: {
-    borderRadius: 15,
-    padding: spacing.md,
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    padding: SPACING.lg,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   servicesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: SPACING.sm,
   },
   serviceTag: {
-    borderRadius: 20,
+    borderRadius: 12,
     overflow: 'hidden',
   },
-  serviceTagGradient: {
+  serviceTagContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    backgroundColor: COLORS.lightBlue,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 12,
   },
   serviceTagText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.white,
-    marginLeft: spacing.xs,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primaryDark,
+    marginLeft: SPACING.xs,
   },
-  descriptionCard: {
-    borderRadius: 15,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  descriptionGradient: {
-    borderRadius: 15,
-    padding: spacing.md,
-  },
-  descriptionText: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    lineHeight: 24,
-  },
+
+  // Botões de Ação
   actionsContainer: {
-    marginTop: spacing.lg,
-    gap: spacing.md,
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.xl,
   },
   primaryButton: {
-    borderRadius: 25,
-    shadowColor: colors.shadow,
+    borderRadius: 16,
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 8,
   },
-  primaryButtonGradient: {
+  primaryButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: 25,
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 16,
   },
   primaryButtonText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.white,
-    marginLeft: spacing.sm,
-  },
-  secondaryButton: {
-    borderRadius: 25,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  secondaryButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  secondaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
-    marginLeft: spacing.sm,
+    fontWeight: '800',
+    color: COLORS.white,
+    marginLeft: SPACING.sm,
+    letterSpacing: -0.3,
   },
 });
 
