@@ -10,8 +10,8 @@ import {
   Dimensions,
   Animated,
   StatusBar,
-  FlatList,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/auth';
@@ -20,6 +20,7 @@ import colors from '../../styles/colors';
 import spacing from '../../styles/spacing';
 
 const { width } = Dimensions.get('window');
+const bannerPlaceholder = require('../../../assets/bannerhome.png');
 
 const getFirstName = (fullName) => {
   if (!fullName) return 'Usuário';
@@ -40,6 +41,11 @@ const HomeScreen = () => {
   const [menuVisible, setMenuVisible] = useState(false);
 
   const menuAnimation = useRef(new Animated.Value(0)).current;
+  const resolvedBannerAsset = Image.resolveAssetSource(bannerPlaceholder);
+  const bannerWidth = width - spacing.paddingHorizontal * 2;
+  const bannerHeight = resolvedBannerAsset && resolvedBannerAsset.width && resolvedBannerAsset.height
+    ? Math.round(bannerWidth * resolvedBannerAsset.height / resolvedBannerAsset.width)
+    : Math.round(bannerWidth * 0.42);
 
   useEffect(() => {
     Animated.parallel([
@@ -211,7 +217,6 @@ const HomeScreen = () => {
                 <View style={styles.greetingContainer}><Text style={styles.greeting}>{getGreeting()}! 👋</Text></View>
                 <Text style={styles.userName}>{getFirstName(user?.nome)}</Text>
                 <Text style={styles.subtitle}>Bem-vindo ao DentalConnect</Text>
-                <View style={styles.timeContainer}><Feather name="clock" size={12} color={colors.background} style={{ marginRight: 4 }} /><Text style={styles.timeText}>{currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</Text></View>
               </View>
               <Animated.View style={[styles.logoContainerAnimated, { transform: [{ scale: scaleAnim }] }]}>
                 <View style={styles.logoGlow} /><MaterialCommunityIcons name="tooth-outline" size={42} color={colors.primary} style={styles.logoIcon} />
@@ -298,6 +303,15 @@ const HomeScreen = () => {
                   <Text style={styles.arrowText}>→</Text>
                 </View>
               </View>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.bannerContainer}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('AgendarConsulta')}
+              style={[styles.bannerWrapper, { width: bannerWidth, height: bannerHeight }]}
+            >
+              <Image source={bannerPlaceholder} style={[styles.bannerImage, { width: bannerWidth, height: bannerHeight }]} resizeMode="contain" />
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -509,6 +523,24 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     marginBottom: 20
+  },
+  bannerContainer: {
+    paddingHorizontal: spacing.paddingHorizontal,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  bannerWrapper: {
+    width: width - spacing.paddingHorizontal * 2,
+    borderRadius: 18,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerImage: {
+    width: width - spacing.paddingHorizontal * 2,
+    height: Math.round((width - spacing.paddingHorizontal * 2) * 0.42),
+    borderRadius: 18,
+    overflow: 'hidden'
   },
   sectionTitle: {
     fontSize: 22,
